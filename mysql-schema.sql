@@ -299,7 +299,7 @@ ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT 
 -- user_roles
 CREATE TABLE IF NOT EXISTS user_roles (
   id varchar(36) PRIMARY KEY DEFAULT (uuid()),
-  user_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   role VARCHAR(50) NOT NULL,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (user_id, role)
@@ -307,7 +307,7 @@ CREATE TABLE IF NOT EXISTS user_roles (
 -- has_role helper
 CREATE TABLE IF NOT EXISTS app_users (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
-  auth_user_id varchar(36) UNIQUE REFERENCES app_users(id) ON DELETE SET NULL,
+  auth_user_id BIGINT UNIQUE REFERENCES app_users(id) ON DELETE SET NULL,
   username TEXT UNIQUE NOT NULL,
   full_name TEXT NOT NULL,
   email TEXT NOT NULL,
@@ -323,7 +323,7 @@ CREATE TABLE IF NOT EXISTS app_users (
 -- user_activity_logs
 CREATE TABLE IF NOT EXISTS user_activity_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
-  auth_user_id varchar(36) REFERENCES app_users(id) ON DELETE SET NULL,
+  auth_user_id BIGINT REFERENCES app_users(id) ON DELETE SET NULL,
   username TEXT,
   full_name TEXT,
   action TEXT NOT NULL,
@@ -337,7 +337,7 @@ CREATE TABLE IF NOT EXISTS user_activity_logs (
 -- user_login_logs
 CREATE TABLE IF NOT EXISTS user_login_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
-  auth_user_id varchar(36) REFERENCES app_users(id) ON DELETE SET NULL,
+  auth_user_id BIGINT REFERENCES app_users(id) ON DELETE SET NULL,
   username TEXT,
   full_name TEXT,
   email TEXT,
@@ -390,7 +390,7 @@ CREATE TABLE feedback_calls (
 -- INTERNAL NOTICES
 CREATE TABLE internal_notices (
   id varchar(36) NOT NULL DEFAULT (uuid()) PRIMARY KEY,
-  sender_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+  sender_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   sender_name TEXT NOT NULL,
   title TEXT NOT NULL,
   body TEXT NOT NULL,
@@ -405,9 +405,9 @@ CREATE TABLE internal_notices (
 CREATE TABLE internal_messages (
   id varchar(36) NOT NULL DEFAULT (uuid()) PRIMARY KEY,
   thread_id varchar(36) NOT NULL DEFAULT (uuid()),
-  sender_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+  sender_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   sender_name TEXT NOT NULL,
-  recipient_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+  recipient_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   recipient_name TEXT NOT NULL,
   subject TEXT,
   body TEXT NOT NULL,
@@ -429,7 +429,7 @@ CREATE TABLE meetings (
   id varchar(36) NOT NULL DEFAULT (uuid()) PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
-  host_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+  host_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   host_name TEXT NOT NULL,
   participant_ids json NOT NULL DEFAULT '[]',
   participant_names json NOT NULL DEFAULT '[]',
@@ -626,5 +626,5 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 
 -- Seed admin user
 INSERT INTO app_users (email, full_name, username, role, password_hash, salt) 
-VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', '14175f263f52dda14391a4d647e3bdba3c425ea30bbdc4d8701f3fc7cf90b857', '477118d681cc3b9ecd72044f830b8edafe08c192f8cc9b1ec5cbea74e3f22659')
+VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', 'e31ef26323f85528fcd11e22fb25a1b3b56f5399bf1b4d966b99018c02b8b3e3', '065f3b6ce8fb5350d01978b02126f3740658f8690fb2e19f397d50d79b4c5581')
 ON DUPLICATE KEY UPDATE email=email;

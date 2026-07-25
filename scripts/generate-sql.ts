@@ -59,8 +59,7 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
     let mysqlStmt = stmt
       .replace(/public\./g, '')
       .replace(/auth\.users\(id\)/gi, 'app_users(id)')
-      .replace(/auth_user_id\s+varchar\(36\)/gi, 'auth_user_id BIGINT')
-      .replace(/user_id\s+varchar\(36\)\s+NOT\s+NULL\s+REFERENCES\s+app_users/gi, 'user_id BIGINT NOT NULL REFERENCES app_users')
+      .replace(/varchar\(36\)(.*?REFERENCES\s+app_users\(id\))/gi, 'BIGINT$1')
       .replace(/app_role/gi, 'VARCHAR(50)')
       .replace(/gen_random_uuid\(\)/gi, '(uuid())')
       .replace(/::[a-zA-Z0-9_]+/g, '')
@@ -93,7 +92,9 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
       .replace(/current_date/gi, 'CURDATE()')
       .replace(/ON\s+CONFLICT\s+DO\s+NOTHING/gi, '')
       .replace(/ON\s+CONFLICT\s+\([^)]+\)\s+DO\s+UPDATE[\s\S]*?(?=;|$)/gi, '')
-      .replace(/REFERENCES\s+public\./gi, 'REFERENCES ');
+      .replace(/REFERENCES\s+public\./gi, 'REFERENCES ')
+      .replace(/varchar\(36\)(.*?REFERENCES\s+app_users\(id\))/gi, 'BIGINT$1')
+      .replace(/uuid(.*?REFERENCES\s+app_users\(id\))/gi, 'BIGINT$1');
 
     // Drop policies left over
     if (/^\s*DROP\s+POLICY/i.test(mysqlStmt)) continue;
