@@ -189,7 +189,7 @@ CREATE TABLE IF NOT EXISTS project_task_checklists (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   task_id BIGINT REFERENCES tasks(id) ON DELETE CASCADE,
   label text NOT NULL,
-ne tinyint(1) DEFAULT 0,
+  done tinyint(1) DEFAULT 0,
   created_at datetime DEFAULT CURRENT_TIMESTAMP
 );
 -- ============ project_timesheets ============
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS project_timesheets (
   employee_name text,
   entry_date date DEFAULT CURDATE(),
   started_at datetime,
-ed_at datetime,
+  ended_at datetime,
   minutes integer DEFAULT 0,
   billable tinyint(1) DEFAULT 1,
   note text,
@@ -294,7 +294,6 @@ ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT 
 
 -- Migration: 20260718142728_78cc9cbe-aff4-440c-9e68-5fdd74663103.sql
 -- Role enum
-
 
 -- user_roles
 CREATE TABLE IF NOT EXISTS user_roles (
@@ -437,7 +436,7 @@ CREATE TABLE meetings (
   meeting_type TEXT NOT NULL DEFAULT 'video',
   scheduled_at datetime,
   started_at datetime,
-ed_at datetime,
+  ended_at datetime,
   status TEXT NOT NULL DEFAULT 'scheduled',
   recording_url TEXT,
   audience TEXT NOT NULL DEFAULT 'specific',
@@ -531,7 +530,7 @@ CREATE TABLE leave_requests (
   leave_type_id varchar(36) REFERENCES leave_types(id) ON DELETE SET NULL,
   leave_type_name text,
   start_date date NOT NULL,
-_date date NOT NULL,
+  end_date date NOT NULL,
   days decimal(15,2) NOT NULL DEFAULT 1,
   half_day tinyint(1) NOT NULL DEFAULT 0,
   reason text,
@@ -615,5 +614,5 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 
 -- Seed admin user
 INSERT INTO app_users (email, full_name, username, role, password_hash, salt) 
-VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', '5416b7d83f33cb0f6853e2e564b7eaa7d61f42c42194e83744dcaccfddffc1b7', 'eebca2f56b88d0b3f945e25dcbbcc0aba1f85c4adc625cc0e93a881024fac435')
+VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', '0e482ecae9bb92fb7c69332a1cf38cd6750e2d3dcf40747c45d0649a5daa216b', 'd45a232ddcc9fc12f91cfd04b47556bc3ee48470ca4f8365d5b282f13279443c')
 ON DUPLICATE KEY UPDATE email=email;

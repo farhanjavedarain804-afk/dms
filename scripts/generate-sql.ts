@@ -22,10 +22,13 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
   pgSql = pgSql.replace(/BEGIN[\s\S]*?END;/gi, '');
 
   // ── Step 5: Remove orphan PG keywords that might have survived ──
-  pgSql = pgSql.replace(/^\s*RETURN\s+\w+\s*;?/gmi, '');
-  pgSql = pgSql.replace(/^\s*END\s*;?/gmi, '');
-  pgSql = pgSql.replace(/^\s*BEGIN\s*;?/gmi, '');
-  pgSql = pgSql.replace(/^\s*DO\s*;?/gmi, '');
+  // Must match FULL LINE (^ to $) so we don't corrupt column names like end_date, begin_date etc.
+  pgSql = pgSql.replace(/^\s*RETURN\s+NEW\s*;?\s*$/gmi, '');
+  pgSql = pgSql.replace(/^\s*RETURN\s+OLD\s*;?\s*$/gmi, '');
+  pgSql = pgSql.replace(/^\s*RETURN\s+NULL\s*;?\s*$/gmi, '');
+  pgSql = pgSql.replace(/^\s*END\s*;?\s*$/gmi, '');
+  pgSql = pgSql.replace(/^\s*BEGIN\s*;?\s*$/gmi, '');
+  pgSql = pgSql.replace(/^\s*DO\s*;?\s*$/gmi, '');
   // Strip PostgreSQL-only ALTER TABLE ... REPLICA IDENTITY ...
   pgSql = pgSql.replace(/ALTER\s+TABLE\s+\S+\s+REPLICA\s+IDENTITY\s+\w+\s*;?/gi, '');
 
@@ -99,7 +102,7 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
       .replace(/integer\s*\[\s*\]/gi, 'json')
       .replace(/\bnumeric\b/gi, 'decimal(15,2)')
       .replace(/without\s+time\s+zone/gi, '')
-      .replace(/current_date/gi, 'CURDATE()')
+      .replace(/\bcurrent_date\b/gi, 'CURDATE()')
       .replace(/REFERENCES\s+public\./gi, 'REFERENCES ')
       .replace(/varchar\(36\)(.*?REFERENCES\s+app_users\(id\))/gi, 'BIGINT$1')
       .replace(/uuid(.*?REFERENCES\s+app_users\(id\))/gi, 'BIGINT$1');
