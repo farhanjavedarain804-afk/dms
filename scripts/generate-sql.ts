@@ -63,6 +63,7 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
       .replace(/user_id\s+varchar\(36\)\s+NOT\s+NULL\s+REFERENCES\s+app_users/gi, 'user_id BIGINT NOT NULL REFERENCES app_users')
       .replace(/app_role/gi, 'VARCHAR(50)')
       .replace(/gen_random_uuid\(\)/gi, '(uuid())')
+      .replace(/::[a-zA-Z0-9_]+/g, '')
       .replace(/bigint\s+generated\s+always\s+as\s+identity\s+primary\s+key/gi, 'bigint AUTO_INCREMENT PRIMARY KEY')
       .replace(/bigint\s+generated\s+by\s+default\s+as\s+identity\s+primary\s+key/gi, 'bigint AUTO_INCREMENT PRIMARY KEY')
       .replace(/int\s+generated\s+always\s+as\s+identity\s+primary\s+key/gi, 'int AUTO_INCREMENT PRIMARY KEY')

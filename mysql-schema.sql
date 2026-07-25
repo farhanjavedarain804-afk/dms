@@ -270,11 +270,11 @@ CREATE TABLE IF NOT EXISTS project_activity_logs (
 
 -- Migration: 20260717133856_daac2a9b-d259-4ff0-b3ca-2eb429f70c8c.sql
 ALTER TABLE projects
-  ADD COLUMN IF NOT EXISTS team_members json DEFAULT '{}'::json,
+  ADD COLUMN IF NOT EXISTS team_members json DEFAULT '{}'[],
   ADD COLUMN IF NOT EXISTS attachment text;
 
 -- Migration: 20260717134410_dd3516a2-375c-49a5-b394-bba1788aec87.sql
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT '[]'::json;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT '[]';
 
 -- Migration: 20260717135640_feaeaa40-e5bc-4215-9b4e-f010ae1d49cb.sql
 ALTER TABLE tasks
@@ -288,7 +288,7 @@ ALTER TABLE tasks
   ADD COLUMN IF NOT EXISTS updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 -- Migration: 20260717141212_ff211332-9b84-4d40-9ea6-386039853582.sql
-ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT '[]'::json;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT '[]';
 
 -- Migration: 20260718130614_b6becfa9-f65b-494e-bee3-c52e8f421a2a.sql
 
@@ -421,8 +421,8 @@ CREATE INDEX idx_internal_messages_sender ON internal_messages(sender_id);
 
 -- Migration: 20260718193000_e469be13-b5de-4b8c-9367-764783a7f6f5.sql
 -- Attachments columns
-ALTER TABLE internal_notices ADD COLUMN IF NOT EXISTS attachments json NOT NULL DEFAULT '[]'::json;
-ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS attachments json NOT NULL DEFAULT '[]'::json;
+ALTER TABLE internal_notices ADD COLUMN IF NOT EXISTS attachments json NOT NULL DEFAULT '[]';
+ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS attachments json NOT NULL DEFAULT '[]';
 ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS message_type TEXT NOT NULL DEFAULT 'text';
 -- Meetings table
 CREATE TABLE meetings (
@@ -457,7 +457,7 @@ ALTER TABLE app_users
   ADD COLUMN IF NOT EXISTS is_locked tinyint(1) NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS locked_at datetime,
   ADD COLUMN IF NOT EXISTS lock_reason text,
-  ADD COLUMN IF NOT EXISTS known_ips json NOT NULL DEFAULT '[]'::json,
+  ADD COLUMN IF NOT EXISTS known_ips json NOT NULL DEFAULT '[]',
   ADD COLUMN IF NOT EXISTS last_login_ip text,
   ADD COLUMN IF NOT EXISTS pending_otp_hash text,
   ADD COLUMN IF NOT EXISTS pending_otp_ip text,
@@ -626,5 +626,5 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 
 -- Seed admin user
 INSERT INTO app_users (email, full_name, username, role, password_hash, salt) 
-VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', '36d152503deec5ae092ad2e2537a946cfa765731ba26d795ee9a12e01fb1069d', '64c92ab604b9299ba040efd5431c56716c7c121f048423e75dbe83f50d8cc6d2')
+VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', '588ad027f9d64532c75b8780db623410e391ccf8d5ea71c55700b6cef5df76e8', 'cc800040d7f3b1362447106e5437cdac341e90ed0a6a40d5f3b16dc0b848882e')
 ON DUPLICATE KEY UPDATE email=email;
