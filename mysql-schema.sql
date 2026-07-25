@@ -1,35 +1,3 @@
--- Core auth tables
-CREATE TABLE IF NOT EXISTS app_users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  email VARCHAR(255) NOT NULL UNIQUE,
-  name VARCHAR(255),
-  role VARCHAR(100) DEFAULT 'Member',
-  password_hash VARCHAR(64) NOT NULL,
-  salt VARCHAR(64) NOT NULL,
-  is_active TINYINT(1) DEFAULT 1,
-  last_login DATETIME,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS user_sessions (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  token VARCHAR(96) NOT NULL UNIQUE,
-  expires_at DATETIME NOT NULL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES app_users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS user_login_logs (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT,
-  email VARCHAR(255),
-  action VARCHAR(50),
-  ip VARCHAR(50),
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 -- Migration: 20260714124543_5537f59c-758b-41a4-bf05-9cecd3cdd24d.sql
 CREATE TABLE employees (
   id bigint AUTO_INCREMENT PRIMARY KEY,
@@ -221,7 +189,7 @@ CREATE TABLE IF NOT EXISTS project_task_checklists (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   task_id BIGINT REFERENCES tasks(id) ON DELETE CASCADE,
   label text NOT NULL,
-  done tinyint(1) DEFAULT 0,
+ne tinyint(1) DEFAULT 0,
   created_at datetime DEFAULT CURRENT_TIMESTAMP
 );
 -- ============ project_timesheets ============
@@ -326,24 +294,24 @@ ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT 
 
 -- Migration: 20260718142728_78cc9cbe-aff4-440c-9e68-5fdd74663103.sql
 -- Role enum
-DO;
+
+
 -- user_roles
 CREATE TABLE IF NOT EXISTS user_roles (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  role app_role NOT NULL,
+  id varchar(36) PRIMARY KEY DEFAULT (uuid()),
+  user_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+  role VARCHAR(50) NOT NULL,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (user_id, role)
 );
-DROP POLICY IF EXISTS "roles_read_all_auth" ON user_roles;
 -- has_role helper
 CREATE TABLE IF NOT EXISTS app_users (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
-  auth_user_id varchar(36) UNIQUE REFERENCES auth.users(id) ON DELETE SET NULL,
+  auth_user_id varchar(36) UNIQUE REFERENCES app_users(id) ON DELETE SET NULL,
   username TEXT UNIQUE NOT NULL,
   full_name TEXT NOT NULL,
   email TEXT NOT NULL,
-  role app_role NOT NULL DEFAULT 'employee',
+  role VARCHAR(50) NOT NULL DEFAULT 'employee',
   department TEXT,
   phone TEXT,
   status TEXT NOT NULL DEFAULT 'active',
@@ -352,14 +320,10 @@ CREATE TABLE IF NOT EXISTS app_users (
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-DROP POLICY IF EXISTS "app_users_read" ON app_users;
-DROP POLICY IF EXISTS "app_users_self_update" ON app_users;
-DROP POLICY IF EXISTS "app_users_admin_write" ON app_users;
-DROP POLICY IF EXISTS "app_users_admin_delete" ON app_users;
 -- user_activity_logs
 CREATE TABLE IF NOT EXISTS user_activity_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
-  auth_user_id varchar(36) REFERENCES auth.users(id) ON DELETE SET NULL,
+  auth_user_id varchar(36) REFERENCES app_users(id) ON DELETE SET NULL,
   username TEXT,
   full_name TEXT,
   action TEXT NOT NULL,
@@ -370,12 +334,10 @@ CREATE TABLE IF NOT EXISTS user_activity_logs (
   user_agent TEXT,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-DROP POLICY IF EXISTS "activity_read" ON user_activity_logs;
-DROP POLICY IF EXISTS "activity_insert_self" ON user_activity_logs;
 -- user_login_logs
 CREATE TABLE IF NOT EXISTS user_login_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
-  auth_user_id varchar(36) REFERENCES auth.users(id) ON DELETE SET NULL,
+  auth_user_id varchar(36) REFERENCES app_users(id) ON DELETE SET NULL,
   username TEXT,
   full_name TEXT,
   email TEXT,
@@ -391,9 +353,6 @@ CREATE TABLE IF NOT EXISTS user_login_logs (
   logout_at datetime,
   duration_seconds BIGINT
 );
-DROP POLICY IF EXISTS "login_logs_read" ON user_login_logs;
-DROP POLICY IF EXISTS "login_logs_insert_self" ON user_login_logs;
-DROP POLICY IF EXISTS "login_logs_update_self" ON user_login_logs;
 
 -- Migration: 20260718144142_026c8c56-2d7e-4bd0-863f-6a713290ec57.sql
 CREATE TABLE IF NOT EXISTS departments (
@@ -403,10 +362,7 @@ CREATE TABLE IF NOT EXISTS departments (
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-DROP POLICY IF EXISTS "Authenticated read departments" ON departments;
-DROP POLICY IF EXISTS "Admins manage departments" ON departments;
 ALTER TABLE app_users ADD COLUMN IF NOT EXISTS employee_id BIGINT REFERENCES employees(id) ON DELETE SET NULL;
-DO;
 
 -- Migration: 20260718144707_5d074edc-d2cd-4ced-89de-76fb8479ac88.sql
 CREATE TABLE feedback_calls (
@@ -433,8 +389,8 @@ CREATE TABLE feedback_calls (
 -- Migration: 20260718192307_d5deb57a-ec1f-47ba-9a6d-46e23c54672a.sql
 -- INTERNAL NOTICES
 CREATE TABLE internal_notices (
-  id varchar(36) NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  sender_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  id varchar(36) NOT NULL DEFAULT (uuid()) PRIMARY KEY,
+  sender_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   sender_name TEXT NOT NULL,
   title TEXT NOT NULL,
   body TEXT NOT NULL,
@@ -447,11 +403,11 @@ CREATE TABLE internal_notices (
 );
 -- INTERNAL MESSAGES
 CREATE TABLE internal_messages (
-  id varchar(36) NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  thread_id varchar(36) NOT NULL DEFAULT gen_random_uuid(),
-  sender_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  id varchar(36) NOT NULL DEFAULT (uuid()) PRIMARY KEY,
+  thread_id varchar(36) NOT NULL DEFAULT (uuid()),
+  sender_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   sender_name TEXT NOT NULL,
-  recipient_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  recipient_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   recipient_name TEXT NOT NULL,
   subject TEXT,
   body TEXT NOT NULL,
@@ -470,10 +426,10 @@ ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS attachments json NOT NULL
 ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS message_type TEXT NOT NULL DEFAULT 'text';
 -- Meetings table
 CREATE TABLE meetings (
-  id varchar(36) NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  id varchar(36) NOT NULL DEFAULT (uuid()) PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
-  host_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  host_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   host_name TEXT NOT NULL,
   participant_ids varchar(36)[] NOT NULL DEFAULT '{}',
   participant_names json NOT NULL DEFAULT '{}',
@@ -508,7 +464,6 @@ ALTER TABLE app_users
   ADD COLUMN IF NOT EXISTS pending_otp_expires_at datetime;
 
 -- Migration: 20260718235254_960ac7eb-47d4-402d-8097-73c27aaa9f5c.sql
-DO;
 
 -- Migration: 20260719000008_dd2ad6a0-6a62-49af-ac5c-291caee0f81f.sql
 CREATE TABLE system_logs (
@@ -551,7 +506,7 @@ ALTER TABLE email_logs REPLICA IDENTITY FULL;
 -- Migration: 20260719002022_705e9c94-8133-4536-8125-ba4496ccb23e.sql
 -- 1) leave_types
 CREATE TABLE leave_types (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+  id varchar(36) PRIMARY KEY DEFAULT (uuid()),
   name text NOT NULL UNIQUE,
   code text,
   color text DEFAULT '#3b82f6',
@@ -564,7 +519,7 @@ CREATE TABLE leave_types (
 );
 -- 2) leave_balances
 CREATE TABLE leave_balances (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+  id varchar(36) PRIMARY KEY DEFAULT (uuid()),
   employee_id varchar(36) NOT NULL,
   leave_type_id varchar(36) NOT NULL REFERENCES leave_types(id) ON DELETE CASCADE,
   year int NOT NULL,
@@ -579,7 +534,7 @@ CREATE TABLE leave_balances (
 CREATE INDEX leave_balances_emp_year_idx ON leave_balances(employee_id, year);
 -- 3) leave_requests
 CREATE TABLE leave_requests (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+  id varchar(36) PRIMARY KEY DEFAULT (uuid()),
   employee_id varchar(36) NOT NULL,
   employee_name text,
   leave_type_id varchar(36) REFERENCES leave_types(id) ON DELETE SET NULL,
@@ -603,7 +558,7 @@ CREATE INDEX leave_requests_status_idx ON leave_requests(status);
 CREATE INDEX leave_requests_dates_idx ON leave_requests(start_date, end_date);
 -- 4) holidays
 CREATE TABLE holidays (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+  id varchar(36) PRIMARY KEY DEFAULT (uuid()),
   name text NOT NULL,
   holiday_date date NOT NULL,
   type text NOT NULL DEFAULT 'public',
@@ -644,7 +599,32 @@ INSERT INTO holidays (name, holiday_date, type, recurring) VALUES
   ('Quaid-e-Azam Day / Christmas', '2026-12-25', 'public', 1)
 ;
 
+-- Add custom authentication columns to app_users
+ALTER TABLE app_users 
+ADD COLUMN IF NOT EXISTS password_hash VARCHAR(128),
+ADD COLUMN IF NOT EXISTS salt VARCHAR(64),
+ADD COLUMN IF NOT EXISTS is_locked TINYINT(1) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS failed_attempts INT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS locked_at DATETIME,
+ADD COLUMN IF NOT EXISTS lock_reason TEXT,
+ADD COLUMN IF NOT EXISTS known_ips JSON,
+ADD COLUMN IF NOT EXISTS pending_otp_hash VARCHAR(128),
+ADD COLUMN IF NOT EXISTS pending_otp_ip VARCHAR(50),
+ADD COLUMN IF NOT EXISTS pending_otp_expires_at DATETIME,
+ADD COLUMN IF NOT EXISTS last_login_ip VARCHAR(50),
+ADD COLUMN IF NOT EXISTS is_active TINYINT(1) DEFAULT 1;
+
+-- Add user_sessions table
+CREATE TABLE IF NOT EXISTS user_sessions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  token VARCHAR(96) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES app_users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Seed admin user
-INSERT INTO app_users (email, name, role, password_hash, salt) 
-VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'Super Admin', '8a162a9bbe821a32d5fe4d677fef64d40ef89c577d1533840c25c82fbc1f8d28', '07e793e348222d751d0da64f56f5137862cdd5b32cfda4857709a0a11dedb05a')
+INSERT INTO app_users (email, full_name, username, role, password_hash, salt) 
+VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', '36d152503deec5ae092ad2e2537a946cfa765731ba26d795ee9a12e01fb1069d', '64c92ab604b9299ba040efd5431c56716c7c121f048423e75dbe83f50d8cc6d2')
 ON DUPLICATE KEY UPDATE email=email;
