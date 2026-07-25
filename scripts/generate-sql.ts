@@ -26,6 +26,8 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
   pgSql = pgSql.replace(/^\s*END\s*;?/gmi, '');
   pgSql = pgSql.replace(/^\s*BEGIN\s*;?/gmi, '');
   pgSql = pgSql.replace(/^\s*DO\s*;?/gmi, '');
+  // Strip PostgreSQL-only ALTER TABLE ... REPLICA IDENTITY ...
+  pgSql = pgSql.replace(/ALTER\s+TABLE\s+\S+\s+REPLICA\s+IDENTITY\s+\w+\s*;?/gi, '');
 
   // ── Step 5b: Convert INSERT ... ON CONFLICT ... DO NOTHING to INSERT IGNORE ──
   // Must happen before splitting so we catch multi-line INSERTs

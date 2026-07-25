@@ -493,9 +493,6 @@ CREATE TABLE email_logs (
   auth_user_id varchar(36),
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-ALTER TABLE system_logs REPLICA IDENTITY FULL;
-ALTER TABLE otp_logs REPLICA IDENTITY FULL;
-ALTER TABLE email_logs REPLICA IDENTITY FULL;
 
 -- Migration: 20260719002022_705e9c94-8133-4536-8125-ba4496ccb23e.sql
 -- 1) leave_types
@@ -618,5 +615,5 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 
 -- Seed admin user
 INSERT INTO app_users (email, full_name, username, role, password_hash, salt) 
-VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', '0eabeb9c06b57b1e7479be711bd73475cd5a08db85dcc15505654f4c13abada7', '480beec209ac1759d5fcf60503ee9fa4427c0fd8a1d8083c7b3f2abc766432cc')
+VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', '5416b7d83f33cb0f6853e2e564b7eaa7d61f42c42194e83744dcaccfddffc1b7', 'eebca2f56b88d0b3f945e25dcbbcc0aba1f85c4adc625cc0e93a881024fac435')
 ON DUPLICATE KEY UPDATE email=email;
