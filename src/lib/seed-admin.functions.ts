@@ -1,29 +1,28 @@
 import { createServerFn } from "@tanstack/react-start";
+import { ensureAuthTables, createUser } from "@/lib/mysql-auth";
+import { queryOne } from "@/lib/mysql";
 
 /**
- * One-shot seed: ensures the Devionic super-admin user exists in Cloud Auth.
+ * One-shot seed: ensures the Devionic super-admin user exists in MySQL auth app_users.
  * Safe to call multiple times.
  */
 export const ensureAdminSeed = createServerFn({ method: "POST" }).handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await ensureAuthTables();
   const email = "farhanjaved357@gmail.com";
   const password = "Fur@8899";
+  const name = "Ch. Farhan Javed";
+  const role = "Super Admin";
 
-  // Look through users for this email.
-  const { data: list, error: listErr } = await supabaseAdmin.auth.admin.listUsers({
-    page: 1,
-    perPage: 200,
-  });
-  if (listErr) throw new Error(listErr.message);
-  const existing = list?.users.find((u) => u.email?.toLowerCase() === email);
-  if (existing) return { ok: true, created: false };
+  try {
+    const existing = await queryOne<any>('SELECT id FROM app_users WHERE email = ?', [email]);
+    if (existing) {
+      return { ok: true, created: false };
+    }
 
-  const { error } = await supabaseAdmin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { name: "Ch. Farhan Javed", role: "Super Admin" },
-  });
-  if (error) throw new Error(error.message);
-  return { ok: true, created: true };
+    await createUser(email, password, name, role);
+    return { ok: true, created: true };
+  } catch (error: any) {
+    console.error("ensureAdminSeed error:", error);
+    throw new Error(error.message || "Failed to seed admin");
+  }
 });

@@ -66,19 +66,22 @@ async function pushToDb(level: "error" | "critical", source: string, message: st
     recent.set(key, now);
     if (recent.size > 200) recent.clear();
 
-    const { supabase } = await import("@/integrations/supabase/client");
-    const userId = readLocalUserId();
-
-    await supabase.from("system_logs" as any).insert({
-      level,
-      source,
-      message: String(message).slice(0, 2000),
-      auth_user_id: userId,
-      meta: {
-        ...meta,
-        url: typeof window !== "undefined" ? window.location.href : "",
-        userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
-        at: new Date().toISOString(),
+    const { $dbCreate } = await import("@/lib/mysql-api");
+    await $dbCreate({
+      data: {
+        table: "system_logs",
+        body: {
+          level,
+          source,
+          message: String(message).slice(0, 2000),
+          meta: JSON.stringify({
+            ...meta,
+            url: typeof window !== "undefined" ? window.location.href : "",
+            userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
+            at: new Date().toISOString(),
+          }),
+          created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+        },
       },
     });
   } catch {

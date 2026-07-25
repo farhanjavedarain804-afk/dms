@@ -1,8 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { $signIn, $signOut, $getSession } from "@/lib/mysql-api";
 import { recordLogin, recordLogout, startHeartbeat, stopHeartbeat } from "@/lib/activity";
 
+const SESSION_TOKEN_KEY = "dms_session_token";
 
 export type AuthUser = {
   id: string;
@@ -20,15 +21,24 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function toAuthUser(u: any | null): AuthUser | null {
-  if (!u) return null;
-  const meta = u.user_metadata ?? {};
-  return {
-    id: u.id,
-    email: u.email ?? "",
-    name: meta.name ?? u.email?.split("@")[0] ?? "User",
-    role: meta.role ?? "Member",
-  };
+function getStoredToken(): string | null {
+  try {
+    return localStorage.getItem(SESSION_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setStoredToken(token: string | null) {
+  try {
+    if (token) {
+      localStorage.setItem(SESSION_TOKEN_KEY, token);
+    } else {
+      localStorage.removeItem(SESSION_TOKEN_KEY);
+    }
+  } catch {
+    // ignore
+  }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -36,32 +46,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(toAuthUser(session?.user ?? null));
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(toAuthUser(data.session?.user ?? null));
+    const token = getStoredToken();
+    if (!token) {
       setLoading(false);
-      if (data.session?.user) startHeartbeat();
-    });
-    return () => { sub.subscription.unsubscribe(); stopHeartbeat(); };
+      return;
+    }
+    $getSession({ data: { token } })
+      .then((session) => {
+        if (session?.user) {
+          setUser({
+            id: String(session.user.id),
+            email: session.user.email,
+            name: session.user.name,
+            role: session.user.role,
+          });
+          startHeartbeat();
+        } else {
+          setStoredToken(null);
+        }
+      })
+      .catch(() => {
+        setStoredToken(null);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-
   const login = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw new Error(error.message);
+    const session = await $signIn({ data: { email, password } });
+    if (!session?.user) throw new Error("Login failed");
+    setStoredToken(session.token);
+    setUser({
+      id: String(session.user.id),
+      email: session.user.email,
+      name: session.user.name,
+      role: session.user.role,
+    });
     await recordLogin(email);
     startHeartbeat();
   }, []);
 
   const logout = useCallback(async () => {
+    const token = getStoredToken();
     await recordLogout();
     stopHeartbeat();
-    await supabase.auth.signOut();
+    if (token) {
+      await $signOut({ data: { token } }).catch(() => {});
+    }
+    setStoredToken(null);
     setUser(null);
   }, []);
-
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>

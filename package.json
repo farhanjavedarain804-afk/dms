@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "start": "node .output/server/index.mjs",
+    "db:init": "tsx scripts/mysql-init.ts",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
@@ -57,6 +58,7 @@
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "lucide-react": "^0.575.0",
+    "mysql2": "^3.23.1",
     "nodemailer": "^9.0.3",
     "otpauth": "^9.5.1",
     "pdf-lib": "^1.17.1",

@@ -1,5 +1,5 @@
-// Data-access layer for Devionic DMS — backed by Lovable Cloud.
-import { supabase } from "@/integrations/supabase/client";
+// Data-access layer for Devionic DMS — backed by MySQL.
+import { $dbList, $dbGet, $dbCreate, $dbUpdate, $dbDelete } from "@/lib/mysql-api";
 
 export type Employee = {
   id: number;
@@ -273,39 +273,6 @@ export type FeedbackCall = {
   created_at?: string;
 };
 
-function crud<T extends { id: number }>(table: string) {
-  const t = () => (supabase.from as any)(table);
-  return {
-    list: async (): Promise<T[]> => {
-      const { data, error } = await t().select("*").order("id", { ascending: false });
-      if (error) throw new Error(error.message);
-      return (data ?? []) as T[];
-    },
-    get: async (id: number): Promise<T> => {
-      const { data, error } = await t().select("*").eq("id", id).single();
-      if (error) throw new Error(error.message);
-      return data as T;
-    },
-    create: async (body: Omit<T, "id">): Promise<T> => {
-      const clean = stripEmpty(body);
-      const { data, error } = await t().insert(clean).select().single();
-      if (error) throw new Error(error.message);
-      return data as T;
-    },
-    update: async (id: number, body: Partial<T>): Promise<T> => {
-      const clean = stripEmpty(body);
-      const { data, error } = await t().update(clean).eq("id", id).select().single();
-      if (error) throw new Error(error.message);
-      return data as T;
-    },
-    remove: async (id: number) => {
-      const { error } = await t().delete().eq("id", id);
-      if (error) throw new Error(error.message);
-      return { ok: true };
-    },
-  };
-}
-
 function stripEmpty(obj: Record<string, any>) {
   const out: Record<string, any> = {};
   for (const [k, v] of Object.entries(obj)) {
@@ -313,6 +280,29 @@ function stripEmpty(obj: Record<string, any>) {
     out[k] = v;
   }
   return out;
+}
+
+function crud<T extends { id: number }>(table: string) {
+  return {
+    list: async (): Promise<T[]> => {
+      return $dbList({ data: { table, orderBy: "id", ascending: false } }) as Promise<T[]>;
+    },
+    get: async (id: number): Promise<T> => {
+      return $dbGet({ data: { table, id } }) as Promise<T>;
+    },
+    create: async (body: Omit<T, "id">): Promise<T> => {
+      const clean = stripEmpty(body as Record<string, any>);
+      return $dbCreate({ data: { table, body: clean } }) as Promise<T>;
+    },
+    update: async (id: number, body: Partial<T>): Promise<T> => {
+      const clean = stripEmpty(body as Record<string, any>);
+      return $dbUpdate({ data: { table, id, body: clean } }) as Promise<T>;
+    },
+    remove: async (id: number) => {
+      await $dbDelete({ data: { table, id } });
+      return { ok: true };
+    },
+  };
 }
 
 export const resources = {
@@ -333,4 +323,3 @@ export const resources = {
   taskChecklists: crud<TaskChecklist>("project_task_checklists"),
   feedbackCalls: crud<FeedbackCall>("feedback_calls"),
 };
-
