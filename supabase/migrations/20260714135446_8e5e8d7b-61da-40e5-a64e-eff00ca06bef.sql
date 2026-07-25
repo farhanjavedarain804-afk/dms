@@ -1,0 +1,21 @@
+
+ALTER TABLE public.employees
+  ADD COLUMN IF NOT EXISTS father_husband_name text,
+  ADD COLUMN IF NOT EXISTS cnic text,
+  ADD COLUMN IF NOT EXISTS date_of_birth date,
+  ADD COLUMN IF NOT EXISTS nationality text DEFAULT 'Pakistani',
+  ADD COLUMN IF NOT EXISTS city text,
+  ADD COLUMN IF NOT EXISTS tehsil text,
+  ADD COLUMN IF NOT EXISTS district text,
+  ADD COLUMN IF NOT EXISTS province text,
+  ADD COLUMN IF NOT EXISTS postal_address text,
+  ADD COLUMN IF NOT EXISTS permanent_address text,
+  ADD COLUMN IF NOT EXISTS phone2 text,
+  ADD COLUMN IF NOT EXISTS whatsapp text,
+  ADD COLUMN IF NOT EXISTS emergency_name text,
+  ADD COLUMN IF NOT EXISTS emergency_relation text,
+  ADD COLUMN IF NOT EXISTS emergency_phone text,
+  ADD COLUMN IF NOT EXISTS emergency_whatsapp text,
+  ADD COLUMN IF NOT EXISTS education text,
+  ADD COLUMN IF NOT EXISTS work_experience text,
+  ADD COLUMN IF NOT EXISTS documents text;
