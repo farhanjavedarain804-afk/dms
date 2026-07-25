@@ -6,6 +6,27 @@ const migrationsDir = path.join(process.cwd(), 'supabase/migrations');
 const outputFile = path.join(process.cwd(), 'mysql-schema.sql');
 
 function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
+  // ── Step 1: Strip dollar-quoted blocks ($$ ... $$) and everything around them ──
+  // These are PL/pgSQL function bodies — not needed in MySQL
+  pgSql = pgSql.replace(/\$\$[\s\S]*?\$\$/g, '');
+
+  // ── Step 2: Strip CREATE OR REPLACE FUNCTION / CREATE FUNCTION blocks ──
+  // Even after stripping $$, function signatures remain
+  pgSql = pgSql.replace(/CREATE\s+(OR\s+REPLACE\s+)?FUNCTION[\s\S]*?(?=CREATE|ALTER|DROP|GRANT|REVOKE|INSERT|UPDATE|DELETE|$)/gi, '');
+
+  // ── Step 3: Strip CREATE TRIGGER / DROP TRIGGER statements ──
+  pgSql = pgSql.replace(/CREATE\s+(OR\s+REPLACE\s+)?TRIGGER[\s\S]*?(?=;)/gi, '');
+  pgSql = pgSql.replace(/DROP\s+TRIGGER[\s\S]*?(?=;)/gi, '');
+
+  // ── Step 4: Strip any remaining BEGIN...END blocks (PL/pgSQL artifacts) ──
+  pgSql = pgSql.replace(/BEGIN[\s\S]*?END;/gi, '');
+
+  // ── Step 5: Remove orphan PG keywords that might have survived ──
+  pgSql = pgSql.replace(/^\s*RETURN\s+\w+\s*;?/gmi, '');
+  pgSql = pgSql.replace(/^\s*END\s*;?/gmi, '');
+  pgSql = pgSql.replace(/^\s*BEGIN\s*;?/gmi, '');
+
+  // ── Step 6: Split and clean individual statements ──
   const rawStatements = pgSql.split(';');
   const mysqlStatements: string[] = [];
 
@@ -13,42 +34,59 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
     stmt = stmt.trim();
     if (!stmt) continue;
 
+    // Skip PG-specific DDL/DML that has no MySQL equivalent
     if (
-      /^\s*(grant|revoke|alter\s+table\s+\S+\s+enable|create\s+policy|alter\s+publication|select\s+cron|create\s+function|create\s+or\s+replace\s+function|create\s+trigger)/i.test(stmt)
+      /^\s*(grant|revoke|alter\s+table\s+\S+\s+enable\s+row|create\s+policy|alter\s+publication|select\s+cron|create\s+function|create\s+or\s+replace\s+function|create\s+trigger|drop\s+trigger|comment\s+on)/i.test(stmt)
     ) {
       continue;
     }
 
-    if (
-      /returns\s+trigger|language\s+plpgsql|execute\s+procedure/i.test(stmt)
-    ) {
+    // Skip any leftover PG keywords as standalone statements
+    if (/^\s*(return\s+new|return\s+old|return\s+null|end|begin)\s*$/i.test(stmt)) {
       continue;
     }
 
+    // Skip if it still contains $$ (should be gone by now)
+    if (stmt.includes('$$')) continue;
+
+    // Skip if it references plpgsql or trigger internals
+    if (/returns\s+trigger|language\s+plpgsql|execute\s+procedure|execute\s+function/i.test(stmt)) {
+      continue;
+    }
+
+    // ── Convert PostgreSQL types/functions to MySQL equivalents ──
     let mysqlStmt = stmt
       .replace(/public\./g, '')
       .replace(/bigint\s+generated\s+always\s+as\s+identity\s+primary\s+key/gi, 'bigint AUTO_INCREMENT PRIMARY KEY')
       .replace(/bigint\s+generated\s+by\s+default\s+as\s+identity\s+primary\s+key/gi, 'bigint AUTO_INCREMENT PRIMARY KEY')
+      .replace(/int\s+generated\s+always\s+as\s+identity\s+primary\s+key/gi, 'int AUTO_INCREMENT PRIMARY KEY')
       .replace(/serial\s+primary\s+key/gi, 'int AUTO_INCREMENT PRIMARY KEY')
       .replace(/bigserial\s+primary\s+key/gi, 'bigint AUTO_INCREMENT PRIMARY KEY')
       .replace(/timestamptz/gi, 'datetime')
       .replace(/timestamp\s+with\s+time\s+zone/gi, 'datetime')
       .replace(/timestamp\s+without\s+time\s+zone/gi, 'datetime')
-      .replace(/now\(\)/gi, 'CURRENT_TIMESTAMP')
+      .replace(/\bnow\(\)/gi, 'CURRENT_TIMESTAMP')
       .replace(/uuid_generate_v4\(\)/gi, '(uuid())')
-      .replace(/uuid/gi, 'varchar(36)')
-      .replace(/jsonb/gi, 'json')
-      .replace(/boolean/gi, 'tinyint(1)')
+      .replace(/\buuid\b/gi, 'varchar(36)')
+      .replace(/\bjsonb\b/gi, 'json')
+      .replace(/\bboolean\b/gi, 'tinyint(1)')
+      .replace(/\btrue\b/gi, '1')
+      .replace(/\bfalse\b/gi, '0')
       .replace(/text\s*\[\s*\]/gi, 'json')
       .replace(/varchar\s*\[\s*\]/gi, 'json')
-      .replace(/numeric/gi, 'decimal(15,2)')
-      .replace(/without\s+time\s+zone/gi, '');
+      .replace(/integer\s*\[\s*\]/gi, 'json')
+      .replace(/\bnumeric\b/gi, 'decimal(15,2)')
+      .replace(/without\s+time\s+zone/gi, '')
+      .replace(/current_date/gi, 'CURDATE()')
+      .replace(/ON\s+CONFLICT\s+DO\s+NOTHING/gi, '')
+      .replace(/ON\s+CONFLICT\s+\([^)]+\)\s+DO\s+UPDATE[\s\S]*?(?=;|$)/gi, '')
+      .replace(/REFERENCES\s+public\./gi, 'REFERENCES ');
 
-    if (mysqlStmt.includes('$$')) {
-      continue;
-    }
+    // Skip empty result after conversion
+    if (!mysqlStmt.trim()) continue;
 
-    if (/create\s+table/i.test(mysqlStmt)) {
+    // Add MySQL engine options to CREATE TABLE statements
+    if (/^\s*create\s+table/i.test(mysqlStmt)) {
       mysqlStmt = `${mysqlStmt} ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`;
     }
 

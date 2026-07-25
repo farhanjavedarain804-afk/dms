@@ -180,11 +180,9 @@ ALTER TABLE projects
   ADD COLUMN IF NOT EXISTS color text,
   ADD COLUMN IF NOT EXISTS tags json,
   ADD COLUMN IF NOT EXISTS start_date date,
-  ADD COLUMN IF NOT EXISTS archived tinyint(1) DEFAULT false,
-  ADD COLUMN IF NOT EXISTS favorite tinyint(1) DEFAULT false,
+  ADD COLUMN IF NOT EXISTS archived tinyint(1) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS favorite tinyint(1) DEFAULT 0,
   ADD COLUMN IF NOT EXISTS updated_at datetime DEFAULT CURRENT_TIMESTAMP;
-RETURN NEW;
-END;
 -- ============ project_members ============
 CREATE TABLE IF NOT EXISTS project_members (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
@@ -193,10 +191,10 @@ CREATE TABLE IF NOT EXISTS project_members (
   employee_name text,
   role text,
   allocation integer DEFAULT 100,
-  joined_on date DEFAULT current_date,
+  joined_on date DEFAULT CURDATE(),
   created_at datetime DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 -- ============ project_milestones ============
 CREATE TABLE IF NOT EXISTS project_milestones (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
@@ -209,7 +207,7 @@ CREATE TABLE IF NOT EXISTS project_milestones (
   budget decimal(15,2),
   created_at datetime DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 -- ============ project_task_comments ============
 CREATE TABLE IF NOT EXISTS project_task_comments (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
@@ -217,15 +215,15 @@ CREATE TABLE IF NOT EXISTS project_task_comments (
   author text,
   body text NOT NULL,
   created_at datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 -- ============ project_task_checklists ============
 CREATE TABLE IF NOT EXISTS project_task_checklists (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   task_id BIGINT REFERENCES tasks(id) ON DELETE CASCADE,
   label text NOT NULL,
-  done tinyint(1) DEFAULT false,
+  done tinyint(1) DEFAULT 0,
   created_at datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 -- ============ project_timesheets ============
 CREATE TABLE IF NOT EXISTS project_timesheets (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
@@ -233,15 +231,15 @@ CREATE TABLE IF NOT EXISTS project_timesheets (
   task_id BIGINT REFERENCES tasks(id) ON DELETE SET NULL,
   employee_id BIGINT REFERENCES employees(id) ON DELETE SET NULL,
   employee_name text,
-  entry_date date DEFAULT current_date,
+  entry_date date DEFAULT CURDATE(),
   started_at datetime,
-  ended_at datetime,
+ed_at datetime,
   minutes integer DEFAULT 0,
-  billable tinyint(1) DEFAULT true,
+  billable tinyint(1) DEFAULT 1,
   note text,
   created_at datetime DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 -- ============ project_documents ============
 CREATE TABLE IF NOT EXISTS project_documents (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
@@ -251,7 +249,7 @@ CREATE TABLE IF NOT EXISTS project_documents (
   size_bytes bigint,
   uploaded_by text,
   created_at datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 -- ============ project_meetings ============
 CREATE TABLE IF NOT EXISTS project_meetings (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
@@ -266,7 +264,7 @@ CREATE TABLE IF NOT EXISTS project_meetings (
   status text DEFAULT 'scheduled',
   created_at datetime DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 -- ============ project_budgets ============
 CREATE TABLE IF NOT EXISTS project_budgets (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
@@ -278,20 +276,20 @@ CREATE TABLE IF NOT EXISTS project_budgets (
   notes text,
   created_at datetime DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 -- ============ project_expenses ============
 CREATE TABLE IF NOT EXISTS project_expenses (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   project_id BIGINT REFERENCES projects(id) ON DELETE CASCADE,
   category text,
   amount decimal(15,2) NOT NULL DEFAULT 0,
-  spent_on date DEFAULT current_date,
+  spent_on date DEFAULT CURDATE(),
   vendor text,
   note text,
   receipt_path text,
   created_at datetime DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 -- ============ project_activity_logs ============
 CREATE TABLE IF NOT EXISTS project_activity_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
@@ -300,7 +298,7 @@ CREATE TABLE IF NOT EXISTS project_activity_logs (
   action text,
   meta json,
   created_at datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
 -- Migration: 20260717133856_daac2a9b-d259-4ff0-b3ca-2eb429f70c8c.sql
 ALTER TABLE projects
@@ -320,7 +318,6 @@ ALTER TABLE tasks
   ADD COLUMN IF NOT EXISTS attachment text,
   ADD COLUMN IF NOT EXISTS completed_at datetime,
   ADD COLUMN IF NOT EXISTS updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP;
-DROP TRIGGER IF EXISTS tasks_touch_updated_at ON tasks;
 
 -- Migration: 20260717141212_ff211332-9b84-4d40-9ea6-386039853582.sql
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT '[]'::json;
@@ -328,17 +325,18 @@ ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT 
 -- Migration: 20260718130614_b6becfa9-f65b-494e-bee3-c52e8f421a2a.sql
 
 -- Migration: 20260718142728_78cc9cbe-aff4-440c-9e68-5fdd74663103.sql
-EXCEPTION WHEN duplicate_object THEN NULL;
+-- Role enum
+DO;
 -- user_roles
 CREATE TABLE IF NOT EXISTS user_roles (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
+  id varchar(36) PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   role app_role NOT NULL,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (user_id, role)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 DROP POLICY IF EXISTS "roles_read_all_auth" ON user_roles;
--- app_users
+-- has_role helper
 CREATE TABLE IF NOT EXISTS app_users (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   auth_user_id varchar(36) UNIQUE REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -353,14 +351,11 @@ CREATE TABLE IF NOT EXISTS app_users (
   total_online_seconds BIGINT NOT NULL DEFAULT 0,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 DROP POLICY IF EXISTS "app_users_read" ON app_users;
 DROP POLICY IF EXISTS "app_users_self_update" ON app_users;
 DROP POLICY IF EXISTS "app_users_admin_write" ON app_users;
 DROP POLICY IF EXISTS "app_users_admin_delete" ON app_users;
-RETURN NEW;
-END;
-DROP TRIGGER IF EXISTS app_users_touch ON app_users;
 -- user_activity_logs
 CREATE TABLE IF NOT EXISTS user_activity_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
@@ -374,7 +369,7 @@ CREATE TABLE IF NOT EXISTS user_activity_logs (
   ip_address TEXT,
   user_agent TEXT,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 DROP POLICY IF EXISTS "activity_read" ON user_activity_logs;
 DROP POLICY IF EXISTS "activity_insert_self" ON user_activity_logs;
 -- user_login_logs
@@ -395,7 +390,7 @@ CREATE TABLE IF NOT EXISTS user_login_logs (
   login_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   logout_at datetime,
   duration_seconds BIGINT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 DROP POLICY IF EXISTS "login_logs_read" ON user_login_logs;
 DROP POLICY IF EXISTS "login_logs_insert_self" ON user_login_logs;
 DROP POLICY IF EXISTS "login_logs_update_self" ON user_login_logs;
@@ -410,15 +405,8 @@ CREATE TABLE IF NOT EXISTS departments (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 DROP POLICY IF EXISTS "Authenticated read departments" ON departments;
 DROP POLICY IF EXISTS "Admins manage departments" ON departments;
-DROP TRIGGER IF EXISTS trg_departments_updated ON departments;
 ALTER TABLE app_users ADD COLUMN IF NOT EXISTS employee_id BIGINT REFERENCES employees(id) ON DELETE SET NULL;
-END IF;
-RETURN NEW;
-END;
-DROP TRIGGER IF EXISTS trg_sync_app_user_from_employee ON employees;
-RETURN OLD;
-END;
-DROP TRIGGER IF EXISTS trg_deactivate_app_user_on_employee_delete ON employees;
+DO;
 
 -- Migration: 20260718144707_5d074edc-d2cd-4ced-89de-76fb8479ac88.sql
 CREATE TABLE feedback_calls (
@@ -445,7 +433,7 @@ CREATE TABLE feedback_calls (
 -- Migration: 20260718192307_d5deb57a-ec1f-47ba-9a6d-46e23c54672a.sql
 -- INTERNAL NOTICES
 CREATE TABLE internal_notices (
-  id varchar(36) NOT NULL DEFAULT gen_random_varchar(36)() PRIMARY KEY,
+  id varchar(36) NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   sender_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   sender_name TEXT NOT NULL,
   title TEXT NOT NULL,
@@ -456,21 +444,21 @@ CREATE TABLE internal_notices (
   read_by varchar(36)[] NOT NULL DEFAULT '{}',
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 -- INTERNAL MESSAGES
 CREATE TABLE internal_messages (
-  id varchar(36) NOT NULL DEFAULT gen_random_varchar(36)() PRIMARY KEY,
-  thread_id varchar(36) NOT NULL DEFAULT gen_random_varchar(36)(),
+  id varchar(36) NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  thread_id varchar(36) NOT NULL DEFAULT gen_random_uuid(),
   sender_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   sender_name TEXT NOT NULL,
   recipient_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   recipient_name TEXT NOT NULL,
   subject TEXT,
   body TEXT NOT NULL,
-  is_read tinyint(1) NOT NULL DEFAULT false,
+  is_read tinyint(1) NOT NULL DEFAULT 0,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 CREATE INDEX idx_internal_messages_thread ON internal_messages(thread_id, created_at);
 CREATE INDEX idx_internal_messages_recipient ON internal_messages(recipient_id);
 CREATE INDEX idx_internal_messages_sender ON internal_messages(sender_id);
@@ -482,7 +470,7 @@ ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS attachments json NOT NULL
 ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS message_type TEXT NOT NULL DEFAULT 'text';
 -- Meetings table
 CREATE TABLE meetings (
-  id varchar(36) NOT NULL DEFAULT gen_random_varchar(36)() PRIMARY KEY,
+  id varchar(36) NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
   host_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -493,13 +481,13 @@ CREATE TABLE meetings (
   meeting_type TEXT NOT NULL DEFAULT 'video',
   scheduled_at datetime,
   started_at datetime,
-  ended_at datetime,
+ed_at datetime,
   status TEXT NOT NULL DEFAULT 'scheduled',
   recording_url TEXT,
   audience TEXT NOT NULL DEFAULT 'specific',
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 -- Storage RLS on comm-attachments bucket
 CREATE POLICY "Auth users read comm attachments"
   ON storage.objects FOR SELECT TO authenticated
@@ -510,7 +498,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE internal_notices;
 -- Migration: 20260718234640_09a9d881-9641-4c6b-b818-64e8f318c07d.sql
 ALTER TABLE app_users
   ADD COLUMN IF NOT EXISTS failed_attempts int NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS is_locked tinyint(1) NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS is_locked tinyint(1) NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS locked_at datetime,
   ADD COLUMN IF NOT EXISTS lock_reason text,
   ADD COLUMN IF NOT EXISTS known_ips json NOT NULL DEFAULT '[]'::json,
@@ -520,23 +508,7 @@ ALTER TABLE app_users
   ADD COLUMN IF NOT EXISTS pending_otp_expires_at datetime;
 
 -- Migration: 20260718235254_960ac7eb-47d4-402d-8097-73c27aaa9f5c.sql
-DECLARE tables json := ARRAY[
-  'employees','attendance','tasks','projects','project_members','project_milestones',
-  'project_task_checklists','project_task_comments','project_timesheets','project_expenses',
-  'project_budgets','project_documents','project_meetings','project_activity_logs',
-  'app_users','user_roles','user_activity_logs','user_login_logs',
-  'internal_messages','internal_notices','meetings','feedback_calls',
-  'departments'
-];
-BEGIN
-  FOREACH t IN ARRAY tables LOOP
-    BEGIN
-      EXECUTE format('ALTER TABLE %I REPLICA IDENTITY FULL', t);
-EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE %I', t);
-EXCEPTION WHEN duplicate_object THEN NULL;
-WHEN undefined_table THEN NULL;
-END;
-END LOOP;
+DO;
 
 -- Migration: 20260719000008_dd2ad6a0-6a62-49af-ac5c-291caee0f81f.sql
 CREATE TABLE system_logs (
@@ -579,20 +551,20 @@ ALTER TABLE email_logs REPLICA IDENTITY FULL;
 -- Migration: 20260719002022_705e9c94-8133-4536-8125-ba4496ccb23e.sql
 -- 1) leave_types
 CREATE TABLE leave_types (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
+  id varchar(36) PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL UNIQUE,
   code text,
   color text DEFAULT '#3b82f6',
   default_days decimal(15,2) NOT NULL DEFAULT 0,
-  paid tinyint(1) NOT NULL DEFAULT true,
+  paid tinyint(1) NOT NULL DEFAULT 1,
   description text,
-  active tinyint(1) NOT NULL DEFAULT true,
+  active tinyint(1) NOT NULL DEFAULT 1,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 -- 2) leave_balances
 CREATE TABLE leave_balances (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
+  id varchar(36) PRIMARY KEY DEFAULT gen_random_uuid(),
   employee_id varchar(36) NOT NULL,
   leave_type_id varchar(36) NOT NULL REFERENCES leave_types(id) ON DELETE CASCADE,
   year int NOT NULL,
@@ -603,19 +575,19 @@ CREATE TABLE leave_balances (
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (employee_id, leave_type_id, year)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 CREATE INDEX leave_balances_emp_year_idx ON leave_balances(employee_id, year);
 -- 3) leave_requests
 CREATE TABLE leave_requests (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
+  id varchar(36) PRIMARY KEY DEFAULT gen_random_uuid(),
   employee_id varchar(36) NOT NULL,
   employee_name text,
   leave_type_id varchar(36) REFERENCES leave_types(id) ON DELETE SET NULL,
   leave_type_name text,
   start_date date NOT NULL,
-  end_date date NOT NULL,
+_date date NOT NULL,
   days decimal(15,2) NOT NULL DEFAULT 1,
-  half_day tinyint(1) NOT NULL DEFAULT false,
+  half_day tinyint(1) NOT NULL DEFAULT 0,
   reason text,
   status text NOT NULL DEFAULT 'pending',
   applied_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -625,56 +597,54 @@ CREATE TABLE leave_requests (
   attachment_url text,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 CREATE INDEX leave_requests_emp_idx ON leave_requests(employee_id);
 CREATE INDEX leave_requests_status_idx ON leave_requests(status);
 CREATE INDEX leave_requests_dates_idx ON leave_requests(start_date, end_date);
 -- 4) holidays
 CREATE TABLE holidays (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
+  id varchar(36) PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
   holiday_date date NOT NULL,
   type text NOT NULL DEFAULT 'public',
-  recurring tinyint(1) NOT NULL DEFAULT false,
+  recurring tinyint(1) NOT NULL DEFAULT 0,
   description text,
   color text DEFAULT '#ef4444',
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 CREATE INDEX holidays_date_idx ON holidays(holiday_date);
-RETURN NEW;
-END;
 -- seed default leave types
 INSERT INTO leave_types (name, code, color, default_days, paid, description) VALUES
-  ('Annual Leave', 'AL', '#3b82f6', 14, true, 'Yearly paid vacation'),
-  ('Casual Leave', 'CL', '#22c55e', 10, true, 'Short-notice personal leave'),
-  ('Sick Leave', 'SL', '#f97316', 8, true, 'Medical / illness'),
-  ('Maternity Leave', 'ML', '#ec4899', 90, true, 'Maternity as per Pakistan labour law'),
-  ('Paternity Leave', 'PL', '#8b5cf6', 7, true, 'Paternity leave'),
-  ('Hajj Leave', 'HJ', '#14b8a6', 30, false, 'Once-in-service Hajj leave'),
-  ('Bereavement', 'BL', '#64748b', 3, true, 'Death in family'),
-  ('Unpaid Leave', 'UL', '#94a3b8', 0, false, 'Leave without pay')
+  ('Annual Leave', 'AL', '#3b82f6', 14, 1, 'Yearly paid vacation'),
+  ('Casual Leave', 'CL', '#22c55e', 10, 1, 'Short-notice personal leave'),
+  ('Sick Leave', 'SL', '#f97316', 8, 1, 'Medical / illness'),
+  ('Maternity Leave', 'ML', '#ec4899', 90, 1, 'Maternity as per Pakistan labour law'),
+  ('Paternity Leave', 'PL', '#8b5cf6', 7, 1, 'Paternity leave'),
+  ('Hajj Leave', 'HJ', '#14b8a6', 30, 0, 'Once-in-service Hajj leave'),
+  ('Bereavement', 'BL', '#64748b', 3, 1, 'Death in family'),
+  ('Unpaid Leave', 'UL', '#94a3b8', 0, 0, 'Leave without pay')
 ON CONFLICT (name) DO NOTHING;
 -- seed common Pakistan public holidays (2026)
 INSERT INTO holidays (name, holiday_date, type, recurring) VALUES
-  ('Kashmir Day', '2026-02-05', 'public', true),
-  ('Pakistan Day', '2026-03-23', 'public', true),
-  ('Eid ul-Fitr (Day 1)', '2026-03-20', 'religious', false),
-  ('Eid ul-Fitr (Day 2)', '2026-03-21', 'religious', false),
-  ('Eid ul-Fitr (Day 3)', '2026-03-22', 'religious', false),
-  ('Labour Day', '2026-05-01', 'public', true),
-  ('Eid ul-Adha (Day 1)', '2026-05-27', 'religious', false),
-  ('Eid ul-Adha (Day 2)', '2026-05-28', 'religious', false),
-  ('Eid ul-Adha (Day 3)', '2026-05-29', 'religious', false),
-  ('Ashura (9th Muharram)', '2026-06-25', 'religious', false),
-  ('Ashura (10th Muharram)', '2026-06-26', 'religious', false),
-  ('Independence Day', '2026-08-14', 'public', true),
-  ('Eid Milad-un-Nabi', '2026-08-25', 'religious', false),
-  ('Iqbal Day', '2026-11-09', 'public', true),
-  ('Quaid-e-Azam Day / Christmas', '2026-12-25', 'public', true)
-ON CONFLICT DO NOTHING;
+  ('Kashmir Day', '2026-02-05', 'public', 1),
+  ('Pakistan Day', '2026-03-23', 'public', 1),
+  ('Eid ul-Fitr (Day 1)', '2026-03-20', 'religious', 0),
+  ('Eid ul-Fitr (Day 2)', '2026-03-21', 'religious', 0),
+  ('Eid ul-Fitr (Day 3)', '2026-03-22', 'religious', 0),
+  ('Labour Day', '2026-05-01', 'public', 1),
+  ('Eid ul-Adha (Day 1)', '2026-05-27', 'religious', 0),
+  ('Eid ul-Adha (Day 2)', '2026-05-28', 'religious', 0),
+  ('Eid ul-Adha (Day 3)', '2026-05-29', 'religious', 0),
+  ('Ashura (9th Muharram)', '2026-06-25', 'religious', 0),
+  ('Ashura (10th Muharram)', '2026-06-26', 'religious', 0),
+  ('Independence Day', '2026-08-14', 'public', 1),
+  ('Eid Milad-un-Nabi', '2026-08-25', 'religious', 0),
+  ('Iqbal Day', '2026-11-09', 'public', 1),
+  ('Quaid-e-Azam Day / Christmas', '2026-12-25', 'public', 1)
+;
 
 -- Seed admin user
 INSERT INTO app_users (email, name, role, password_hash, salt) 
-VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'Super Admin', 'd9a15599ed04d7f6099c8230d9d7e88415a53630023a562b53a6e69e77a49096', '96984173726b72f192c8101f2b9d04ce94f80227383504eaf23c2168eb95ef58')
+VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'Super Admin', '8a162a9bbe821a32d5fe4d677fef64d40ef89c577d1533840c25c82fbc1f8d28', '07e793e348222d751d0da64f56f5137862cdd5b32cfda4857709a0a11dedb05a')
 ON DUPLICATE KEY UPDATE email=email;
