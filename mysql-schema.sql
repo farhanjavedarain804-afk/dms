@@ -444,12 +444,6 @@ ed_at datetime,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
--- Storage RLS on comm-attachments bucket
-CREATE POLICY "Auth users read comm attachments"
-  ON storage.objects FOR SELECT TO authenticated
-  USING (bucket_id = 'comm-attachments');
--- Realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE internal_notices;
 
 -- Migration: 20260718234640_09a9d881-9641-4c6b-b818-64e8f318c07d.sql
 ALTER TABLE app_users
@@ -570,7 +564,7 @@ CREATE TABLE holidays (
 );
 CREATE INDEX holidays_date_idx ON holidays(holiday_date);
 -- seed default leave types
-INSERT INTO leave_types (name, code, color, default_days, paid, description) VALUES
+INSERT IGNORE INTO leave_types (name, code, color, default_days, paid, description) VALUES
   ('Annual Leave', 'AL', '#3b82f6', 14, 1, 'Yearly paid vacation'),
   ('Casual Leave', 'CL', '#22c55e', 10, 1, 'Short-notice personal leave'),
   ('Sick Leave', 'SL', '#f97316', 8, 1, 'Medical / illness'),
@@ -578,10 +572,9 @@ INSERT INTO leave_types (name, code, color, default_days, paid, description) VAL
   ('Paternity Leave', 'PL', '#8b5cf6', 7, 1, 'Paternity leave'),
   ('Hajj Leave', 'HJ', '#14b8a6', 30, 0, 'Once-in-service Hajj leave'),
   ('Bereavement', 'BL', '#64748b', 3, 1, 'Death in family'),
-  ('Unpaid Leave', 'UL', '#94a3b8', 0, 0, 'Leave without pay')
-ON CONFLICT (name) DO NOTHING;
+  ('Unpaid Leave', 'UL', '#94a3b8', 0, 0, 'Leave without pay');
 -- seed common Pakistan public holidays (2026)
-INSERT INTO holidays (name, holiday_date, type, recurring) VALUES
+INSERT IGNORE INTO holidays (name, holiday_date, type, recurring) VALUES
   ('Kashmir Day', '2026-02-05', 'public', 1),
   ('Pakistan Day', '2026-03-23', 'public', 1),
   ('Eid ul-Fitr (Day 1)', '2026-03-20', 'religious', 0),
@@ -596,8 +589,7 @@ INSERT INTO holidays (name, holiday_date, type, recurring) VALUES
   ('Independence Day', '2026-08-14', 'public', 1),
   ('Eid Milad-un-Nabi', '2026-08-25', 'religious', 0),
   ('Iqbal Day', '2026-11-09', 'public', 1),
-  ('Quaid-e-Azam Day / Christmas', '2026-12-25', 'public', 1)
-;
+  ('Quaid-e-Azam Day / Christmas', '2026-12-25', 'public', 1);
 
 -- Add custom authentication columns to app_users
 ALTER TABLE app_users 
@@ -626,5 +618,5 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 
 -- Seed admin user
 INSERT INTO app_users (email, full_name, username, role, password_hash, salt) 
-VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', 'e31ef26323f85528fcd11e22fb25a1b3b56f5399bf1b4d966b99018c02b8b3e3', '065f3b6ce8fb5350d01978b02126f3740658f8690fb2e19f397d50d79b4c5581')
+VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', '0eabeb9c06b57b1e7479be711bd73475cd5a08db85dcc15505654f4c13abada7', '480beec209ac1759d5fcf60503ee9fa4427c0fd8a1d8083c7b3f2abc766432cc')
 ON DUPLICATE KEY UPDATE email=email;

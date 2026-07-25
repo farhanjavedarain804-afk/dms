@@ -27,6 +27,13 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
   pgSql = pgSql.replace(/^\s*BEGIN\s*;?/gmi, '');
   pgSql = pgSql.replace(/^\s*DO\s*;?/gmi, '');
 
+  // ── Step 5b: Convert INSERT ... ON CONFLICT ... DO NOTHING to INSERT IGNORE ──
+  // Must happen before splitting so we catch multi-line INSERTs
+  pgSql = pgSql.replace(/(INSERT\s+INTO)/gi, 'INSERT IGNORE INTO');
+  pgSql = pgSql.replace(/\s*ON\s+CONFLICT\s*\([^)]*\)\s*DO\s+NOTHING/gi, '');
+  pgSql = pgSql.replace(/\s*ON\s+CONFLICT\s+DO\s+NOTHING/gi, '');
+  pgSql = pgSql.replace(/\s*ON\s+CONFLICT\s*\([^)]*\)\s*DO\s+UPDATE[\s\S]*?(?=;)/gi, '');
+
   // ── Step 6: Split and clean individual statements ──
   const rawStatements = pgSql.split(';');
   const mysqlStatements: string[] = [];
@@ -36,8 +43,9 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
     if (!stmt) continue;
 
     // Skip PG-specific DDL/DML that has no MySQL equivalent
+    const stmtNoComments = stmt.replace(/--.*$/gm, '').trim();
     if (
-      /^\s*(grant|revoke|alter\s+table\s+\S+\s+enable\s+row|create\s+policy|alter\s+publication|select\s+cron|create\s+function|create\s+or\s+replace\s+function|create\s+trigger|drop\s+trigger|comment\s+on)/i.test(stmt)
+      /^\s*(grant|revoke|alter\s+table\s+\S+\s+enable\s+row|create\s+policy|alter\s+publication|select\s+cron|create\s+function|create\s+or\s+replace\s+function|create\s+trigger|drop\s+trigger|comment\s+on)/i.test(stmtNoComments)
     ) {
       continue;
     }
@@ -90,8 +98,6 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
       .replace(/\bnumeric\b/gi, 'decimal(15,2)')
       .replace(/without\s+time\s+zone/gi, '')
       .replace(/current_date/gi, 'CURDATE()')
-      .replace(/ON\s+CONFLICT\s+DO\s+NOTHING/gi, '')
-      .replace(/ON\s+CONFLICT\s+\([^)]+\)\s+DO\s+UPDATE[\s\S]*?(?=;|$)/gi, '')
       .replace(/REFERENCES\s+public\./gi, 'REFERENCES ')
       .replace(/varchar\(36\)(.*?REFERENCES\s+app_users\(id\))/gi, 'BIGINT$1')
       .replace(/uuid(.*?REFERENCES\s+app_users\(id\))/gi, 'BIGINT$1');
