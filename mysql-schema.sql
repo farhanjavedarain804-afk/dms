@@ -270,7 +270,7 @@ CREATE TABLE IF NOT EXISTS project_activity_logs (
 
 -- Migration: 20260717133856_daac2a9b-d259-4ff0-b3ca-2eb429f70c8c.sql
 ALTER TABLE projects
-  ADD COLUMN IF NOT EXISTS team_members json DEFAULT '{}'[],
+  ADD COLUMN IF NOT EXISTS team_members json DEFAULT '[]',
   ADD COLUMN IF NOT EXISTS attachment text;
 
 -- Migration: 20260717134410_dd3516a2-375c-49a5-b394-bba1788aec87.sql
@@ -396,8 +396,8 @@ CREATE TABLE internal_notices (
   body TEXT NOT NULL,
   priority TEXT NOT NULL DEFAULT 'normal',
   audience TEXT NOT NULL DEFAULT 'all',
-  recipient_ids varchar(36)[] NOT NULL DEFAULT '{}',
-  read_by varchar(36)[] NOT NULL DEFAULT '{}',
+  recipient_ids varchar(36)[] NOT NULL DEFAULT '[]',
+  read_by varchar(36)[] NOT NULL DEFAULT '[]',
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -431,8 +431,8 @@ CREATE TABLE meetings (
   description TEXT,
   host_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   host_name TEXT NOT NULL,
-  participant_ids varchar(36)[] NOT NULL DEFAULT '{}',
-  participant_names json NOT NULL DEFAULT '{}',
+  participant_ids varchar(36)[] NOT NULL DEFAULT '[]',
+  participant_names json NOT NULL DEFAULT '[]',
   room_name TEXT NOT NULL UNIQUE,
   meeting_type TEXT NOT NULL DEFAULT 'video',
   scheduled_at datetime,
@@ -626,5 +626,5 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 
 -- Seed admin user
 INSERT INTO app_users (email, full_name, username, role, password_hash, salt) 
-VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', '588ad027f9d64532c75b8780db623410e391ccf8d5ea71c55700b6cef5df76e8', 'cc800040d7f3b1362447106e5437cdac341e90ed0a6a40d5f3b16dc0b848882e')
+VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', '83f4f16256ce7d1da5fb25b10c12208e81cfdb24340803fd14a3de1c61f2949b', '0b2bb37c187def0393a5460ea87446a914248335b8eba328e024f33d26033a71')
 ON DUPLICATE KEY UPDATE email=email;
