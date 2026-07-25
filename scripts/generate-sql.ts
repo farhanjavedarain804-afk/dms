@@ -86,6 +86,7 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
       .replace(/\bfalse\b/gi, '0')
       .replace(/text\s*\[\s*\]/gi, 'json')
       .replace(/varchar\s*\[\s*\]/gi, 'json')
+      .replace(/varchar\(\d+\)\s*\[\s*\]/gi, 'json')
       .replace(/integer\s*\[\s*\]/gi, 'json')
       .replace(/\bnumeric\b/gi, 'decimal(15,2)')
       .replace(/without\s+time\s+zone/gi, '')

@@ -396,8 +396,8 @@ CREATE TABLE internal_notices (
   body TEXT NOT NULL,
   priority TEXT NOT NULL DEFAULT 'normal',
   audience TEXT NOT NULL DEFAULT 'all',
-  recipient_ids varchar(36)[] NOT NULL DEFAULT '[]',
-  read_by varchar(36)[] NOT NULL DEFAULT '[]',
+  recipient_ids json NOT NULL DEFAULT '[]',
+  read_by json NOT NULL DEFAULT '[]',
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -431,7 +431,7 @@ CREATE TABLE meetings (
   description TEXT,
   host_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   host_name TEXT NOT NULL,
-  participant_ids varchar(36)[] NOT NULL DEFAULT '[]',
+  participant_ids json NOT NULL DEFAULT '[]',
   participant_names json NOT NULL DEFAULT '[]',
   room_name TEXT NOT NULL UNIQUE,
   meeting_type TEXT NOT NULL DEFAULT 'video',
@@ -626,5 +626,5 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 
 -- Seed admin user
 INSERT INTO app_users (email, full_name, username, role, password_hash, salt) 
-VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', '83f4f16256ce7d1da5fb25b10c12208e81cfdb24340803fd14a3de1c61f2949b', '0b2bb37c187def0393a5460ea87446a914248335b8eba328e024f33d26033a71')
+VALUES ('farhanjaved357@gmail.com', 'Ch. Farhan Javed', 'farhan', 'Super Admin', '14175f263f52dda14391a4d647e3bdba3c425ea30bbdc4d8701f3fc7cf90b857', '477118d681cc3b9ecd72044f830b8edafe08c192f8cc9b1ec5cbea74e3f22659')
 ON DUPLICATE KEY UPDATE email=email;
