@@ -99,9 +99,71 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
 }
 
 async function run() {
-  console.log('Connecting to MySQL database...');
-  const conn = await mysql.createConnection(connectionConfig);
-  console.log('Connected successfully!');
+  console.log('Parsing PostgreSQL migrations to generate MySQL schema dump...');
+
+  const migrationsDir = path.join(process.cwd(), 'supabase/migrations');
+  if (!fs.existsSync(migrationsDir)) {
+    console.error('Migrations directory not found at', migrationsDir);
+    process.exit(1);
+  }
+
+  const files = fs.readdirSync(migrationsDir)
+    .filter(f => f.endsWith('.sql'))
+    .sort();
+
+  console.log(`Found ${files.length} PostgreSQL migration files to parse.`);
+  
+  let combinedSqlDump = `-- Auto-generated MySQL Schema\n\n`;
+  combinedSqlDump += `CREATE TABLE IF NOT EXISTS app_users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  name VARCHAR(255),
+  role VARCHAR(100) DEFAULT 'Member',
+  password_hash VARCHAR(64) NOT NULL,
+  salt VARCHAR(64) NOT NULL,
+  is_active TINYINT(1) DEFAULT 1,
+  last_login DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;\n\n`;
+
+  combinedSqlDump += `CREATE TABLE IF NOT EXISTS user_sessions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  token VARCHAR(96) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES app_users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;\n\n`;
+
+  const parsedStatements: string[] = [];
+
+  for (const file of files) {
+    const filePath = path.join(migrationsDir, file);
+    const content = fs.readFileSync(filePath, 'utf8');
+    const mysqlStatements = cleanAndConvertPostgresToMysql(content);
+    for (const sql of mysqlStatements) {
+      if (!sql.trim()) continue;
+      combinedSqlDump += sql + ';\n\n';
+      parsedStatements.push(sql);
+    }
+  }
+
+  // Save the full schema to a file for easy manual import on Hostinger
+  const dumpPath = path.join(process.cwd(), 'mysql_schema.sql');
+  fs.writeFileSync(dumpPath, combinedSqlDump);
+  console.log(`\n✅ Saved complete MySQL schema to: ${dumpPath}\n(You can import this file directly into phpMyAdmin on Hostinger!)\n`);
+
+  console.log('Connecting to MySQL database to execute migrations locally...');
+  let conn;
+  try {
+    conn = await mysql.createConnection(connectionConfig);
+    console.log('Connected successfully!');
+  } catch (err) {
+    console.error('Failed to connect to local database, but schema file was created successfully.');
+    console.error(err);
+    return;
+  }
 
   // Ensure app_users, user_sessions exist first
   console.log('Ensuring core auth tables...');
@@ -131,18 +193,6 @@ async function run() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
-  const migrationsDir = path.join(process.cwd(), 'supabase/migrations');
-  if (!fs.existsSync(migrationsDir)) {
-    console.error('Migrations directory not found at', migrationsDir);
-    process.exit(1);
-  }
-
-  const files = fs.readdirSync(migrationsDir)
-    .filter(f => f.endsWith('.sql'))
-    .sort();
-
-  console.log(`Found ${files.length} PostgreSQL migration files to parse.`);
-
   for (const file of files) {
     console.log(`Processing migration file: ${file}`);
     const filePath = path.join(migrationsDir, file);
@@ -151,12 +201,10 @@ async function run() {
     const mysqlStatements = cleanAndConvertPostgresToMysql(content);
     for (const sql of mysqlStatements) {
       try {
-        // Skip empty or comment-only statements
         if (!sql.trim()) continue;
         console.log(`Executing SQL: ${sql.slice(0, 100)}...`);
         await conn.query(sql);
       } catch (err: any) {
-        // Ignore table already exists errors (common in migrations)
         if (err.errno === 1050) {
           console.log(`Table already exists, skipping.`);
         } else if (err.errno === 1060) {
