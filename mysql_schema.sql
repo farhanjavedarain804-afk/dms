@@ -305,7 +305,7 @@ ALTER TABLE tasks
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT '[]';
 
 CREATE TABLE IF NOT EXISTS user_roles (
-  id varchar(36) PRIMARY KEY DEFAULT (varchar(36)()),
+  id varchar(36) PRIMARY KEY DEFAULT (uuid()),
   user_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   role varchar(50) NOT NULL,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -393,7 +393,7 @@ CREATE TABLE feedback_calls (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE internal_notices (
-  id varchar(36) NOT NULL DEFAULT (varchar(36)()) PRIMARY KEY,
+  id varchar(36) NOT NULL DEFAULT (uuid()) PRIMARY KEY,
   sender_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   sender_name TEXT NOT NULL,
   title TEXT NOT NULL,
@@ -407,8 +407,8 @@ CREATE TABLE internal_notices (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE internal_messages (
-  id varchar(36) NOT NULL DEFAULT (varchar(36)()) PRIMARY KEY,
-  thread_id varchar(36) NOT NULL DEFAULT (varchar(36)()),
+  id varchar(36) NOT NULL DEFAULT (uuid()) PRIMARY KEY,
+  thread_id varchar(36) NOT NULL DEFAULT (uuid()),
   sender_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   sender_name TEXT NOT NULL,
   recipient_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
@@ -433,7 +433,7 @@ ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS attachments json NOT NULL
 ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS message_type TEXT NOT NULL DEFAULT 'text';
 
 CREATE TABLE meetings (
-  id varchar(36) NOT NULL DEFAULT (varchar(36)()) PRIMARY KEY,
+  id varchar(36) NOT NULL DEFAULT (uuid()) PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
   host_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
@@ -506,7 +506,7 @@ ALTER TABLE otp_logs REPLICA IDENTITY FULL;
 ALTER TABLE email_logs REPLICA IDENTITY FULL;
 
 CREATE TABLE leave_types (
-  id varchar(36) PRIMARY KEY DEFAULT (varchar(36)()),
+  id varchar(36) PRIMARY KEY DEFAULT (uuid()),
   name text NOT NULL UNIQUE,
   code text,
   color text DEFAULT '#3b82f6',
@@ -519,7 +519,7 @@ CREATE TABLE leave_types (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE leave_balances (
-  id varchar(36) PRIMARY KEY DEFAULT (varchar(36)()),
+  id varchar(36) PRIMARY KEY DEFAULT (uuid()),
   employee_id varchar(36) NOT NULL,
   leave_type_id varchar(36) NOT NULL REFERENCES leave_types(id) ON DELETE CASCADE,
   year int NOT NULL,
@@ -535,7 +535,7 @@ CREATE TABLE leave_balances (
 CREATE INDEX leave_balances_emp_year_idx ON leave_balances(employee_id, year);
 
 CREATE TABLE leave_requests (
-  id varchar(36) PRIMARY KEY DEFAULT (varchar(36)()),
+  id varchar(36) PRIMARY KEY DEFAULT (uuid()),
   employee_id varchar(36) NOT NULL,
   employee_name text,
   leave_type_id varchar(36) REFERENCES leave_types(id) ON DELETE SET NULL,
@@ -562,7 +562,7 @@ CREATE INDEX leave_requests_status_idx ON leave_requests(status);
 CREATE INDEX leave_requests_dates_idx ON leave_requests(start_date, end_date);
 
 CREATE TABLE holidays (
-  id varchar(36) PRIMARY KEY DEFAULT (varchar(36)()),
+  id varchar(36) PRIMARY KEY DEFAULT (uuid()),
   name text NOT NULL,
   holiday_date date NOT NULL,
   type text NOT NULL DEFAULT 'public',
