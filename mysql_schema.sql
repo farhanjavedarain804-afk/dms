@@ -1,7 +1,10 @@
 -- Auto-generated MySQL Schema
+-- Generated: 2026-07-26T11:18:22.136Z
+
+SET FOREIGN_KEY_CHECKS=0;
 
 CREATE TABLE IF NOT EXISTS app_users (
-  id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
+  id INT AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(255) NOT NULL UNIQUE,
   name VARCHAR(255),
   role VARCHAR(100) DEFAULT 'Member',
@@ -15,7 +18,7 @@ CREATE TABLE IF NOT EXISTS app_users (
 
 CREATE TABLE IF NOT EXISTS user_sessions (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id VARCHAR(36) NOT NULL,
+  user_id INT NOT NULL,
   token VARCHAR(96) NOT NULL UNIQUE,
   expires_at DATETIME NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -596,3 +599,4 @@ INSERT IGNORE INTO holidays (name, holiday_date, type, recurring) VALUES
   ('Iqbal Day', '2026-11-09', 'public', true),
   ('Quaid-e-Azam Day / Christmas', '2026-12-25', 'public', true);
 
+SET FOREIGN_KEY_CHECKS=1;

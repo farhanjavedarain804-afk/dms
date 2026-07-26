@@ -126,9 +126,10 @@ async function run() {
 
   console.log(`Found ${files.length} PostgreSQL migration files to parse.`);
   
-  let combinedSqlDump = `-- Auto-generated MySQL Schema\n\n`;
+  // Wrap the entire schema with foreign key check disable/enable
+  let combinedSqlDump = `-- Auto-generated MySQL Schema\n-- Generated: ${new Date().toISOString()}\n\nSET FOREIGN_KEY_CHECKS=0;\n\n`;
   combinedSqlDump += `CREATE TABLE IF NOT EXISTS app_users (
-  id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
+  id INT AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(255) NOT NULL UNIQUE,
   name VARCHAR(255),
   role VARCHAR(100) DEFAULT 'Member',
@@ -142,7 +143,7 @@ async function run() {
 
   combinedSqlDump += `CREATE TABLE IF NOT EXISTS user_sessions (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id VARCHAR(36) NOT NULL,
+  user_id INT NOT NULL,
   token VARCHAR(96) NOT NULL UNIQUE,
   expires_at DATETIME NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -161,6 +162,9 @@ async function run() {
       parsedStatements.push(sql);
     }
   }
+
+  // Re-enable foreign key checks at the end
+  combinedSqlDump += `SET FOREIGN_KEY_CHECKS=1;\n`;
 
   // Save the full schema to a file for easy manual import on Hostinger
   const dumpPath = path.join(process.cwd(), 'mysql_schema.sql');
