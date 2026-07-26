@@ -14,14 +14,23 @@ import { signIn, signOut, getSession, ensureAuthTables, createUser, listUsers, g
 export const $signIn = createServerFn({ method: 'POST' })
   .validator((data: { email: string; password: string }) => data)
   .handler(async ({ data }) => {
-    await ensureAuthTables();
-    return signIn(data.email, data.password);
+    try {
+      await ensureAuthTables();
+      return await signIn(data.email, data.password);
+    } catch (err: any) {
+      console.error('[signIn] Error:', err?.message ?? err);
+      throw new Error(err?.message ?? 'Database connection failed. Please contact support.');
+    }
   });
 
 export const $signOut = createServerFn({ method: 'POST' })
   .validator((data: { token: string }) => data)
   .handler(async ({ data }) => {
-    await signOut(data.token);
+    try {
+      await signOut(data.token);
+    } catch (err: any) {
+      console.error('[signOut] Error:', err?.message ?? err);
+    }
     return { ok: true };
   });
 
@@ -40,8 +49,13 @@ export const $getSession = createServerFn({ method: 'GET' })
 export const $createUser = createServerFn({ method: 'POST' })
   .validator((data: { email: string; password: string; name: string; role?: string }) => data)
   .handler(async ({ data }) => {
-    await ensureAuthTables();
-    return createUser(data.email, data.password, data.name, data.role);
+    try {
+      await ensureAuthTables();
+      return await createUser(data.email, data.password, data.name, data.role);
+    } catch (err: any) {
+      console.error('[createUser] Error:', err?.message ?? err);
+      throw new Error(err?.message ?? 'Failed to create user.');
+    }
   });
 
 export const $listUsers = createServerFn({ method: 'GET' })

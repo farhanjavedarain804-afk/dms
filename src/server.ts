@@ -49,8 +49,10 @@ const handler = {
       const response = await serverEntry.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
-      console.error(error);
-      return new Response(renderErrorPage(), {
+      const msg = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack ?? '' : '';
+      console.error('[server handler]', msg, stack);
+      return new Response(renderErrorPage(msg, stack), {
         status: 500,
         headers: { "content-type": "text/html; charset=utf-8" },
       });
@@ -99,8 +101,10 @@ if (process.env.NODE_ENV !== "development") {
       }
       nodeRes.end();
     } catch (error) {
-      console.error(error);
-      const html = renderErrorPage();
+      const msg = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack ?? '' : '';
+      console.error('[node handler]', msg, stack);
+      const html = renderErrorPage(msg, stack);
       nodeRes.writeHead(500, { "content-type": "text/html; charset=utf-8" });
       nodeRes.end(html);
     }
