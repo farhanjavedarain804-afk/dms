@@ -1,7 +1,7 @@
 import { Activity, FolderPlus, Wallet, CheckCircle2, CalendarDays, UserPlus, FileText, Users, Ticket, Settings } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 
 const ICONS: Record<string, { icon: any; color: string }> = {
   projects: { icon: FolderPlus, color: "bg-violet-100 text-violet-600" },

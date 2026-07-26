@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Upload, FileText, Loader2, ExternalLink, X, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 import { toast } from "sonner";
 
 type Props = {
@@ -40,13 +40,13 @@ export function FileAttachment({ value, onChange, folder = "docs", bucket = "doc
     try {
       const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin";
       const key = `${folder}/${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage.from(bucket).upload(key, file, {
+      const { error } = await db.storage.from(bucket).upload(key, file, {
         contentType: file.type || "application/octet-stream",
         upsert: false,
       });
       if (error) throw error;
       if (current?.path) {
-        supabase.storage.from(bucket).remove([current.path]).catch(() => {});
+        db.storage.from(bucket).remove([current.path]).catch(() => {});
       }
       onChange(`${key}::${file.name}`);
       toast.success("File attached");
@@ -59,14 +59,14 @@ export function FileAttachment({ value, onChange, folder = "docs", bucket = "doc
 
   const view = async () => {
     if (!current) return;
-    const { data, error } = await supabase.storage.from(bucket).createSignedUrl(current.path, 300);
+    const { data, error } = await db.storage.from(bucket).createSignedUrl(current.path, 300);
     if (error) return toast.error(error.message);
     window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
 
   const download = async () => {
     if (!current) return;
-    const { data, error } = await supabase.storage.from(bucket).createSignedUrl(current.path, 300, { download: current.name });
+    const { data, error } = await db.storage.from(bucket).createSignedUrl(current.path, 300, { download: current.name });
     if (error) return toast.error(error.message);
     window.location.href = data.signedUrl;
   };
@@ -76,7 +76,7 @@ export function FileAttachment({ value, onChange, folder = "docs", bucket = "doc
     if (!confirm("Remove the attached file?")) return;
     setBusy(true);
     try {
-      await supabase.storage.from(bucket).remove([current.path]);
+      await db.storage.from(bucket).remove([current.path]);
       onChange(null);
       toast.success("Removed");
     } finally {

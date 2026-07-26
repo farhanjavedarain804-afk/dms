@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,7 +34,7 @@ export async function uploadAttachment(
 ): Promise<Attachment> {
   const safe = filename.replace(/[^\w.\-]+/g, "_");
   const path = `${userId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${safe}`;
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
+  const { error } = await db.storage.from(BUCKET).upload(path, file, {
     contentType: mime, upsert: false,
   });
   if (error) throw error;
@@ -47,7 +47,7 @@ export async function getSignedUrl(path: string): Promise<string> {
   const cached = urlCache.get(path);
   const now = Date.now();
   if (cached && cached.exp > now + 30_000) return cached.url;
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, 3600);
+  const { data, error } = await db.storage.from(BUCKET).createSignedUrl(path, 3600);
   if (error || !data) throw error ?? new Error("signed url failed");
   urlCache.set(path, { url: data.signedUrl, exp: now + 3600_000 });
   return data.signedUrl;

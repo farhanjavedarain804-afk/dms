@@ -159,8 +159,8 @@ function LoginPage() {
       if (!pre.ipTrusted && ip) {
         // Log out immediately; user must verify the new IP first
         try {
-          const { supabase } = await import("@/integrations/supabase/client");
-          await supabase.auth.signOut();
+          const { supabase } = await import("@/lib/db-client");
+          await db.auth.signOut();
         } catch {
           /* ignore */
         }

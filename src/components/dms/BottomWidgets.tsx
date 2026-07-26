@@ -2,7 +2,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { Sparkles, UserPlus, FolderPlus, FileText, Wallet, Ticket, Upload, Megaphone, Bot } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 
 const DEPT_COLORS = ["bg-violet-500", "bg-sky-500", "bg-emerald-500", "bg-orange-500", "bg-rose-500", "bg-fuchsia-500", "bg-teal-500", "bg-indigo-500"];
 const TASK_COLORS: Record<string, string> = {
@@ -23,7 +23,7 @@ function useEmployeesByDept() {
   return useQuery({
     queryKey: ["dashboard", "dept-breakdown"],
     queryFn: async () => {
-      const { data } = await supabase.from("employees").select("department");
+      const { data } = await db.from("employees").select("department");
       const counts: Record<string, number> = {};
       (data ?? []).forEach((e: any) => {
         const d = e.department || "Unassigned";
@@ -45,7 +45,7 @@ function useTasksOverview() {
   return useQuery({
     queryKey: ["dashboard", "tasks-overview"],
     queryFn: async () => {
-      const { data } = await supabase.from("tasks").select("status");
+      const { data } = await db.from("tasks").select("status");
       const counts: Record<string, number> = {};
       (data ?? []).forEach((t: any) => {
         const s = String(t.status ?? "pending").toLowerCase().replace(/\s+/g, "_");
@@ -73,8 +73,8 @@ function useAttendanceToday() {
     queryFn: async () => {
       const today = new Date().toISOString().slice(0, 10);
       const [attRes, empRes] = await Promise.all([
-        supabase.from("attendance").select("status").eq("date", today),
-        supabase.from("employees").select("*", { count: "exact", head: true }),
+        db.from("attendance").select("status").eq("date", today),
+        db.from("employees").select("*", { count: "exact", head: true }),
       ]);
       let present = 0, absent = 0, late = 0;
       (attRes.data ?? []).forEach((a: any) => {
@@ -96,8 +96,8 @@ function useUpcomingEvents() {
     queryFn: async () => {
       const today = new Date().toISOString().slice(0, 10);
       const [meetings, holidays] = await Promise.all([
-        supabase.from("meetings").select("id, title, date, start_time, end_time").gte("date", today).order("date").limit(4),
-        supabase.from("holidays").select("id, name, date").gte("date", today).order("date").limit(4),
+        db.from("meetings").select("id, title, date, start_time, end_time").gte("date", today).order("date").limit(4),
+        db.from("holidays").select("id, name, date").gte("date", today).order("date").limit(4),
       ]);
       type Ev = { id: string; d: string; m: string; title: string; time: string; sort: string };
       const mk = (iso: string): { d: string; m: string } => {

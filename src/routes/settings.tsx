@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AppLayout, PageHeader } from "@/components/dms/Layout";
 import { useAuth } from "@/lib/auth";
 import { COMPANY } from "@/lib/company";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -347,12 +347,12 @@ function SettingsPage() {
       r.readAsDataURL(file);
     });
     savePrefs({ ...prefs, avatarUrl: dataUrl });
-    supabase.auth.updateUser({ data: { avatar_url: dataUrl } }).catch(() => {});
+    db.auth.updateUser({ data: { avatar_url: dataUrl } }).catch(() => {});
     toast.success("Profile picture updated");
   }
   function removeAvatar() {
     savePrefs({ ...prefs, avatarUrl: "" });
-    supabase.auth.updateUser({ data: { avatar_url: null } }).catch(() => {});
+    db.auth.updateUser({ data: { avatar_url: null } }).catch(() => {});
   }
   function addBank() {
     const b: BankAccount = {
@@ -408,7 +408,7 @@ function SettingsPage() {
     if (pwd1 !== pwd2) { toast.error("Passwords do not match"); return; }
     setSavingPwd(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password: pwd1 });
+      const { error } = await db.auth.updateUser({ password: pwd1 });
       if (error) throw error;
       toast.success("Password updated");
       setPwd1(""); setPwd2("");
@@ -423,7 +423,7 @@ function SettingsPage() {
   async function signOutAllDevices() {
     if (!confirm("Sign out on ALL your devices? This cannot be undone.")) return;
     try {
-      await supabase.auth.signOut({ scope: "global" });
+      await db.auth.signOut({ scope: "global" });
       toast.success("Signed out on all devices");
       await logout();
     } catch (e: any) {

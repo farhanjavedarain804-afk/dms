@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 import { AppLayout, PageHeader } from "@/components/dms/Layout";
 import { ModuleReportButton, ModuleReportsCard } from "@/components/dms/ModuleReport";
 import { StatsCards, type Stat } from "@/components/dms/StatsCards";
@@ -74,9 +74,9 @@ function LeavesPage() {
           <ModuleReportButton
             build={async () => {
               const [reqRes, holRes, balRes] = await Promise.all([
-                supabase.from("leave_requests").select("*").order("applied_at", { ascending: false }),
-                supabase.from("holidays").select("*").order("holiday_date"),
-                supabase.from("leave_balances").select("*"),
+                db.from("leave_requests").select("*").order("applied_at", { ascending: false }),
+                db.from("holidays").select("*").order("holiday_date"),
+                db.from("leave_balances").select("*"),
               ]);
               const reqs = (reqRes.data ?? []) as any[];
               const hols = (holRes.data ?? []) as any[];
@@ -158,7 +158,7 @@ function useLeaveTypes() {
   return useQuery({
     queryKey: ["leave_types"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("leave_types").select("*").order("name");
+      const { data, error } = await db.from("leave_types").select("*").order("name");
       if (error) throw error;
       return (data ?? []) as LeaveType[];
     },
@@ -168,7 +168,7 @@ function useEmployees() {
   return useQuery({
     queryKey: ["employees-min"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("employees").select("id, name").order("name");
+      const { data, error } = await db.from("employees").select("id, name").order("name");
       if (error) throw error;
       return (data ?? []) as unknown as Employee[];
     },
@@ -178,7 +178,7 @@ function useHolidays() {
   return useQuery({
     queryKey: ["holidays"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("holidays").select("*").order("holiday_date");
+      const { data, error } = await db.from("holidays").select("*").order("holiday_date");
       if (error) throw error;
       return (data ?? []) as Holiday[];
     },
@@ -188,7 +188,7 @@ function useRequests() {
   return useQuery({
     queryKey: ["leave_requests"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("leave_requests").select("*").order("applied_at", { ascending: false });
+      const { data, error } = await db.from("leave_requests").select("*").order("applied_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as LeaveRequest[];
     },
@@ -198,7 +198,7 @@ function useBalances() {
   return useQuery({
     queryKey: ["leave_balances"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("leave_balances").select("*");
+      const { data, error } = await db.from("leave_balances").select("*");
       if (error) throw error;
       return (data ?? []) as LeaveBalance[];
     },
@@ -240,7 +240,7 @@ function RequestsTab() {
 
   const review = useMutation({
     mutationFn: async ({ id, status, comment, req }: { id: string; status: "approved" | "rejected"; comment: string; req: LeaveRequest }) => {
-      const { error } = await supabase.from("leave_requests").update({
+      const { error } = await db.from("leave_requests").update({
         status, reviewer_comment: comment, reviewed_at: new Date().toISOString(),
         reviewer: "Admin",
       }).eq("id", id);
@@ -249,13 +249,13 @@ function RequestsTab() {
       // On approval, increment used balance for that employee/type/year
       if (status === "approved" && req.leave_type_id) {
         const year = new Date(req.start_date).getFullYear();
-        const { data: existing } = await supabase.from("leave_balances")
+        const { data: existing } = await db.from("leave_balances")
           .select("*").eq("employee_id", req.employee_id).eq("leave_type_id", req.leave_type_id).eq("year", year).maybeSingle();
         if (existing) {
-          await supabase.from("leave_balances").update({ used: Number(existing.used) + Number(req.days) }).eq("id", existing.id);
+          await db.from("leave_balances").update({ used: Number(existing.used) + Number(req.days) }).eq("id", existing.id);
         } else {
           const t = (types.data ?? []).find((x) => x.id === req.leave_type_id);
-          await supabase.from("leave_balances").insert({
+          await db.from("leave_balances").insert({
             employee_id: req.employee_id, leave_type_id: req.leave_type_id, year,
             allocated: t?.default_days ?? 0, used: req.days,
           });
@@ -272,7 +272,7 @@ function RequestsTab() {
 
   const del = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("leave_requests").delete().eq("id", id);
+      const { error } = await db.from("leave_requests").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["leave_requests"] }); toast.success("Deleted"); },
@@ -378,7 +378,7 @@ function NewRequestDialog({ employees, types, onDone }: { employees: Employee[];
       if (end < start) throw new Error("End date must be on/after start date");
       const emp = employees.find((e) => String(e.id) === empId);
       const t = types.find((x) => x.id === typeId);
-      const { error } = await supabase.from("leave_requests").insert({
+      const { error } = await db.from("leave_requests").insert({
         employee_id: empId, employee_name: emp?.name ?? null,
         leave_type_id: typeId, leave_type_name: t?.name ?? null,
         start_date: start, end_date: end, days, half_day: halfDay, reason,
@@ -452,7 +452,7 @@ function BalancesTab() {
         rows.push({ employee_id: e.id, leave_type_id: t.id, year, allocated: t.default_days, used: 0 });
       }
       if (!rows.length) return 0;
-      const { error } = await supabase.from("leave_balances").insert(rows);
+      const { error } = await db.from("leave_balances").insert(rows);
       if (error) throw error;
       return rows.length;
     },
@@ -462,7 +462,7 @@ function BalancesTab() {
 
   const updateAlloc = useMutation({
     mutationFn: async ({ id, allocated }: { id: string; allocated: number }) => {
-      const { error } = await supabase.from("leave_balances").update({ allocated }).eq("id", id);
+      const { error } = await db.from("leave_balances").update({ allocated }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["leave_balances"] }),
@@ -662,10 +662,10 @@ function HolidaysCard() {
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error("Name required");
       if (edit) {
-        const { error } = await supabase.from("holidays").update(form).eq("id", edit.id);
+        const { error } = await db.from("holidays").update(form).eq("id", edit.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("holidays").insert(form);
+        const { error } = await db.from("holidays").insert(form);
         if (error) throw error;
       }
     },
@@ -673,7 +673,7 @@ function HolidaysCard() {
     onError: (e: any) => toast.error(e.message || "Failed"),
   });
   const del = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from("holidays").delete().eq("id", id); if (error) throw error; },
+    mutationFn: async (id: string) => { const { error } = await db.from("holidays").delete().eq("id", id); if (error) throw error; },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["holidays"] }); toast.success("Deleted"); },
   });
 
@@ -753,10 +753,10 @@ function LeaveTypesCard() {
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error("Name required");
       if (edit) {
-        const { error } = await supabase.from("leave_types").update(form).eq("id", edit.id);
+        const { error } = await db.from("leave_types").update(form).eq("id", edit.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("leave_types").insert(form);
+        const { error } = await db.from("leave_types").insert(form);
         if (error) throw error;
       }
     },
@@ -764,7 +764,7 @@ function LeaveTypesCard() {
     onError: (e: any) => toast.error(e.message || "Failed"),
   });
   const del = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from("leave_types").delete().eq("id", id); if (error) throw error; },
+    mutationFn: async (id: string) => { const { error } = await db.from("leave_types").delete().eq("id", id); if (error) throw error; },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["leave_types"] }); toast.success("Deleted"); },
   });
 

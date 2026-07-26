@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/auth-middleware";
 import { z } from "zod";
 import { buildRequest, callProvider, getProviderDefaultModel } from "./ai-provider";
 import { testProviderConnection } from "./ai-provider-test";
@@ -156,7 +156,7 @@ async function runTool(
 
     if (name === "query_records") {
       const limit = Math.min(Math.max(Number(args?.limit ?? 20), 1), 100);
-      let q = supabase.from(table).select(args?.columns || "*").limit(limit);
+      let q = db.from(table).select(args?.columns || "*").limit(limit);
       q = applyFilters(q, args?.filters);
       if (args?.order_by) q = q.order(args.order_by, { ascending: args?.ascending !== false });
       const { data, error } = await q;
@@ -165,7 +165,7 @@ async function runTool(
     }
 
     if (name === "insert_record") {
-      const { data, error } = await supabase.from(table).insert(args.values).select();
+      const { data, error } = await db.from(table).insert(args.values).select();
       if (error) return { ok: false, error: error.message };
       const ids = (data || []).map((r: any) => r?.id).filter(Boolean);
       return {
@@ -179,10 +179,10 @@ async function runTool(
       if (!args?.filters || Object.keys(args.filters).length === 0)
         return { ok: false, error: "Filters required for update." };
       // capture before state
-      let pre = supabase.from(table).select("*");
+      let pre = db.from(table).select("*");
       pre = applyFilters(pre, args.filters);
       const { data: beforeRows } = await pre;
-      let q = supabase.from(table).update(args.values);
+      let q = db.from(table).update(args.values);
       q = applyFilters(q, args.filters);
       const { data, error } = await q.select();
       if (error) return { ok: false, error: error.message };
@@ -197,7 +197,7 @@ async function runTool(
     if (name === "delete_records") {
       if (!args?.filters || Object.keys(args.filters).length === 0)
         return { ok: false, error: "Filters required for delete." };
-      let q = supabase.from(table).delete();
+      let q = db.from(table).delete();
       q = applyFilters(q, args.filters);
       const { data, error } = await q.select();
       if (error) return { ok: false, error: error.message };
@@ -218,7 +218,7 @@ async function runTool(
 const AGENT_CAPABLE = new Set(["lovable", "openai", "openrouter", "deepseek", "groq", "mistral", "together", "custom"]);
 
 export const chatWithAI = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((data: unknown) => chatSchema.parse(data))
   .handler(async ({ data, context }) => {
     const provider = (data.provider || "lovable").toLowerCase();
@@ -307,7 +307,7 @@ const testSchema = z.object({
 });
 
 export const testAIProvider = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((data: unknown) => testSchema.parse(data))
   .handler(async ({ data }) => {
     try {
@@ -325,7 +325,7 @@ const transcribeSchema = z.object({
 });
 
 export const transcribeAudio = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((data: unknown) => transcribeSchema.parse(data))
   .handler(async ({ data }) => {
     const key = process.env.LOVABLE_API_KEY;
@@ -388,7 +388,7 @@ Rules:
 - Output MUST be a single JSON object. No commentary.`;
 
 export const planActions = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((data: unknown) => planSchema.parse(data))
   .handler(async ({ data }) => {
     const provider = (data.provider || "lovable").toLowerCase();
@@ -470,10 +470,10 @@ async function scanWorkspace(supabase: any) {
   const summary: any[] = [];
   for (const t of SCAN_TABLES) {
     try {
-      const { count } = await supabase.from(t.table).select("*", { count: "exact", head: true });
+      const { count } = await db.from(t.table).select("*", { count: "exact", head: true });
       const row: any = { table: t.table, total: count ?? 0 };
       if (t.status) {
-        const { data } = await supabase.from(t.table).select(t.status).limit(500);
+        const { data } = await db.from(t.table).select(t.status).limit(500);
         if (Array.isArray(data)) {
           const buckets: Record<string, number> = {};
           for (const r of data) {
@@ -512,7 +512,7 @@ Analyse the snapshot and produce PRACTICAL, PRIORITISED suggestions a manager ca
 Format as clean markdown with clear sections, headings, and bullet points. Be specific — quote the actual numbers from the snapshot. Reply in the same language as the user's focus (default English; use Roman Urdu if the focus is in Roman Urdu).`;
 
 export const scanAndSuggest = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((data: unknown) => suggestSchema.parse(data))
   .handler(async ({ data, context }) => {
     const supabase = (context as any).supabase;
@@ -554,7 +554,7 @@ const undoSchema = z.object({
 });
 
 export const undoActions = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((data: unknown) => undoSchema.parse(data))
   .handler(async ({ data, context }) => {
     const supabase = (context as any).supabase;
@@ -567,7 +567,7 @@ export const undoActions = createServerFn({ method: "POST" })
       }
       try {
         if (r.kind === "delete" && r.ids?.length) {
-          const { data: d, error } = await supabase.from(r.table).delete().in("id", r.ids).select();
+          const { data: d, error } = await db.from(r.table).delete().in("id", r.ids).select();
           if (error) results.push({ table: r.table, kind: r.kind, ok: false, error: error.message });
           else results.push({ table: r.table, kind: r.kind, ok: true, affected: d?.length ?? 0 });
         } else if (r.kind === "restore" && r.rows?.length) {
@@ -576,13 +576,13 @@ export const undoActions = createServerFn({ method: "POST" })
           for (const row of r.rows) {
             if (!row?.id) continue;
             const { id, ...rest } = row as any;
-            const { error } = await supabase.from(r.table).update(rest).eq("id", id);
+            const { error } = await db.from(r.table).update(rest).eq("id", id);
             if (error) { err = error.message; break; }
             affected++;
           }
           results.push({ table: r.table, kind: r.kind, ok: !err, error: err, affected });
         } else if (r.kind === "reinsert" && r.rows?.length) {
-          const { data: d, error } = await supabase.from(r.table).insert(r.rows).select();
+          const { data: d, error } = await db.from(r.table).insert(r.rows).select();
           if (error) results.push({ table: r.table, kind: r.kind, ok: false, error: error.message });
           else results.push({ table: r.table, kind: r.kind, ok: true, affected: d?.length ?? 0 });
         }

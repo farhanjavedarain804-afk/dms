@@ -19,7 +19,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 import { createAppUser, deleteAppUser, resetUserPassword, updateUserRole, setUserStatus } from "@/lib/users.functions";
 import { adminUnlockLogin, adminLockLogin } from "@/lib/login-security.functions";
 import { Building2, Power, Lock as LockIcon, Unlock as UnlockIcon } from "lucide-react";
@@ -156,7 +156,7 @@ function UsersPage() {
   const employeesQ = useQuery({
     queryKey: ["employees_for_users"],
     queryFn: async (): Promise<Employee[]> => {
-      const { data, error } = await supabase.from("employees" as any)
+      const { data, error } = await db.from("employees" as any)
         .select("id, name, email, phone, department, position")
         .order("name", { ascending: true });
       if (error) throw new Error(error.message);
@@ -168,7 +168,7 @@ function UsersPage() {
   const departmentsQ = useQuery({
     queryKey: ["departments"],
     queryFn: async (): Promise<Department[]> => {
-      const { data, error } = await supabase.from("departments" as any)
+      const { data, error } = await db.from("departments" as any)
         .select("id, name, description").order("name", { ascending: true });
       if (error) throw new Error(error.message);
       return (data as any) ?? [];
@@ -179,7 +179,7 @@ function UsersPage() {
   const usersQ = useQuery({
     queryKey: ["app_users"],
     queryFn: async (): Promise<AppUser[]> => {
-      const { data, error } = await supabase.from("app_users" as any).select("*").order("id", { ascending: false });
+      const { data, error } = await db.from("app_users" as any).select("*").order("id", { ascending: false });
       if (error) throw new Error(error.message);
       return (data as any) ?? [];
     },
@@ -189,7 +189,7 @@ function UsersPage() {
   const loginsQ = useQuery({
     queryKey: ["login_logs"],
     queryFn: async (): Promise<LoginLog[]> => {
-      const { data, error } = await supabase.from("user_login_logs" as any).select("*").order("login_at", { ascending: false }).limit(500);
+      const { data, error } = await db.from("user_login_logs" as any).select("*").order("login_at", { ascending: false }).limit(500);
       if (error) throw new Error(error.message);
       return (data as any) ?? [];
     },
@@ -198,7 +198,7 @@ function UsersPage() {
   const activityQ = useQuery({
     queryKey: ["activity_logs"],
     queryFn: async (): Promise<ActivityLog[]> => {
-      const { data, error } = await supabase.from("user_activity_logs" as any).select("*").order("created_at", { ascending: false }).limit(500);
+      const { data, error } = await db.from("user_activity_logs" as any).select("*").order("created_at", { ascending: false }).limit(500);
       if (error) throw new Error(error.message);
       return (data as any) ?? [];
     },
@@ -704,7 +704,7 @@ function DepartmentsPanel({ departments, onChange }: { departments: Department[]
   const add = async () => {
     if (!name.trim()) { toast.error("Name required"); return; }
     setSaving(true);
-    const { error } = await supabase.from("departments" as any).insert({ name: name.trim(), description: description.trim() || null } as any);
+    const { error } = await db.from("departments" as any).insert({ name: name.trim(), description: description.trim() || null } as any);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Department added");
@@ -714,7 +714,7 @@ function DepartmentsPanel({ departments, onChange }: { departments: Department[]
 
   const remove = async (id: number) => {
     if (!confirm("Delete department?")) return;
-    const { error } = await supabase.from("departments" as any).delete().eq("id", id);
+    const { error } = await db.from("departments" as any).delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success("Deleted");
     onChange();

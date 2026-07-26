@@ -2,7 +2,7 @@ import { useState } from "react";
 import { PDFDocument } from "pdf-lib";
 import { Upload, FileText, Loader2, ExternalLink, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 import { toast } from "sonner";
 
 type Props = {
@@ -60,14 +60,14 @@ export function DocumentUploader({ value, onChange, folder = "employees", bucket
     try {
       const pdfBytes = await mergeToOnePdf(files);
       const key = `${folder}/${crypto.randomUUID()}.pdf`;
-      const { error } = await supabase.storage.from(bucket).upload(key, pdfBytes, {
+      const { error } = await db.storage.from(bucket).upload(key, pdfBytes, {
         contentType: "application/pdf",
         upsert: false,
       });
       if (error) throw error;
       // If there was a previous file for this record, best-effort remove it.
       if (value) {
-        supabase.storage.from(bucket).remove([value]).catch(() => {});
+        db.storage.from(bucket).remove([value]).catch(() => {});
       }
       onChange(key);
       setFiles([]);
@@ -81,7 +81,7 @@ export function DocumentUploader({ value, onChange, folder = "employees", bucket
 
   const handleView = async () => {
     if (!value) return;
-    const { data, error } = await supabase.storage.from(bucket).createSignedUrl(value, 300);
+    const { data, error } = await db.storage.from(bucket).createSignedUrl(value, 300);
     if (error) return toast.error(error.message);
     window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
@@ -91,7 +91,7 @@ export function DocumentUploader({ value, onChange, folder = "employees", bucket
     if (!confirm("Remove the uploaded documents PDF?")) return;
     setBusy(true);
     try {
-      await supabase.storage.from(bucket).remove([value]);
+      await db.storage.from(bucket).remove([value]);
       onChange(null);
       toast.success("Removed");
     } finally {

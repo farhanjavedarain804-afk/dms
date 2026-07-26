@@ -3,7 +3,7 @@ import { createMiddleware } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
 import { getSession } from '@/lib/mysql-auth'
 
-export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
+export const requireAuth = createMiddleware({ type: 'function' }).server(
   async ({ next }) => {
     const request = getRequest();
 

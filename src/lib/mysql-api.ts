@@ -1,7 +1,7 @@
 /**
  * mysql-api.ts
  *
- * TanStack Start server functions that replace direct supabase.from() calls.
+ * TanStack Start server functions that replace direct db.from() calls.
  * All DB access is server-side only – never exposes MySQL credentials to the client.
  */
 

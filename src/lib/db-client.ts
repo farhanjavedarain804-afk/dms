@@ -1,8 +1,8 @@
 /**
- * MySQL migration: Supabase Client proxy query builder.
+ * MySQL migration: Database Client proxy query builder.
  *
  * All database access has been migrated to MySQL.
- * This proxy maps direct client-side supabase calls (supabase.from(), supabase.auth)
+ * This proxy maps direct client-side db calls (db.from(), db.auth)
  * to MySQL Server Functions dynamically, allowing front-end pages to work without refactoring.
  */
 
@@ -277,7 +277,7 @@ const auth = {
   }
 };
 
-export const supabase = {
+export const db = {
   from(table: string) {
     return new ClientQueryBuilder(table);
   },

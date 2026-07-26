@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 
 const letterheadPdf = () => import("@/lib/letterhead-pdf");
 
@@ -78,7 +78,7 @@ async function lookupRecord(type: RecordType, ref: string): Promise<{ entity: st
   if (!q) return null;
   try {
     if (type === "Employee") {
-      const { data } = await supabase.from("employees")
+      const { data } = await db.from("employees")
         .select("*")
         .or(`name.ilike.%${q}%,employee_code.ilike.%${q}%,cnic.ilike.%${q}%,email.ilike.%${q}%`).limit(1).maybeSingle();
       if (!data) return null;
@@ -98,7 +98,7 @@ Status        : ${fmt(d.status)}`
       };
     }
     if (type === "Intern") {
-      const { data } = await supabase.from("employees")
+      const { data } = await db.from("employees")
         .select("*")
         .or(`name.ilike.%${q}%,employee_code.ilike.%${q}%,email.ilike.%${q}%`).limit(1).maybeSingle();
       if (!data) return null;

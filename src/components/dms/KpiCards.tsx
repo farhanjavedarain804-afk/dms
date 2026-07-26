@@ -1,6 +1,6 @@
 import { Users, FolderKanban, UserRoundCog, DollarSign, LifeBuoy, TrendingUp, TrendingDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 import { useLocalArray } from "@/lib/use-local-array";
 
 type Invoice = { id: number; total: number; amount_paid: number; invoice_date: string; status: string };
@@ -11,7 +11,7 @@ function useCount(table: string) {
   return useQuery({
     queryKey: [table, "count"],
     queryFn: async () => {
-      const { count } = await supabase.from(table as any).select("*", { count: "exact", head: true });
+      const { count } = await db.from(table as any).select("*", { count: "exact", head: true });
       return count ?? 0;
     },
     staleTime: 30_000,

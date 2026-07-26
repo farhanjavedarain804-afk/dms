@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/auth-middleware";
 import { db } from "@/lib/db";
 import { query, queryOne, execute } from "@/lib/mysql";
 import { createUser, changePassword, getUserById } from "@/lib/mysql-auth";
@@ -22,7 +22,7 @@ async function isAdmin(userId: string): Promise<boolean> {
 }
 
 export const createAppUser = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((data: CreateUserInput) => data)
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context.userId))) throw new Error("Forbidden: admin role required");
@@ -66,7 +66,7 @@ export const createAppUser = createServerFn({ method: "POST" })
   });
 
 export const deleteAppUser = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((data: { id: number; auth_user_id?: string }) => data)
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context.userId))) throw new Error("Forbidden");
@@ -76,7 +76,7 @@ export const deleteAppUser = createServerFn({ method: "POST" })
   });
 
 export const resetUserPassword = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((data: { auth_user_id: string; password: string }) => data)
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context.userId))) throw new Error("Forbidden");
@@ -85,7 +85,7 @@ export const resetUserPassword = createServerFn({ method: "POST" })
   });
 
 export const updateUserRole = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((data: { id: number; auth_user_id: string; role: string }) => data)
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context.userId))) throw new Error("Forbidden: admin role required");
@@ -94,7 +94,7 @@ export const updateUserRole = createServerFn({ method: "POST" })
   });
 
 export const setUserStatus = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((data: { id: number; status: "active" | "inactive" }) => data)
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context.userId))) throw new Error("Forbidden");

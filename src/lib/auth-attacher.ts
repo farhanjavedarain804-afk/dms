@@ -4,7 +4,7 @@ import { createMiddleware } from '@tanstack/react-start'
 
 const SESSION_TOKEN_KEY = "dms_session_token";
 
-export const attachSupabaseAuth = createMiddleware({ type: 'function' }).client(
+export const attachAuth = createMiddleware({ type: 'function' }).client(
   async ({ next }) => {
     let token: string | null = null;
     try {

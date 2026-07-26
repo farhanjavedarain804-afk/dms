@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/auth-middleware";
 import { query, queryOne, execute } from "@/lib/mysql";
 import type { EmailConfig } from "./email-config.functions";
 
@@ -234,7 +234,7 @@ export const verifyIpOtp = createServerFn({ method: "POST" })
  * Admin action — unlock a user's login and clear failed attempts.
  */
 export const adminUnlockLogin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: { id: number; resetIps?: boolean }) => d)
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context.userId))) throw new Error("Forbidden");
@@ -258,7 +258,7 @@ export const adminUnlockLogin = createServerFn({ method: "POST" })
  * Admin action — manually lock a user's login.
  */
 export const adminLockLogin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: { id: number; reason?: string }) => d)
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context.userId))) throw new Error("Forbidden");

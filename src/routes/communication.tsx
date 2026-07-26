@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { AppLayout, PageHeader } from "@/components/dms/Layout";
 import { StatsCards } from "@/components/dms/StatsCards";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,7 +95,7 @@ function useAppUsers() {
   return useQuery({
     queryKey: ["comm-app-users"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("app_users")
+      const { data, error } = await db.from("app_users")
         .select("id, auth_user_id, full_name, email, role, department, status")
         .eq("status", "active").order("full_name");
       if (error) throw error;
@@ -110,7 +110,7 @@ function useIsAdmin() {
     queryKey: ["is-admin", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase.rpc("is_admin", { _user_id: user!.id });
+      const { data } = await db.rpc("is_admin", { _user_id: user!.id });
       return !!data;
     },
   });
@@ -120,12 +120,12 @@ function useIsAdmin() {
 function useRealtime(table: string, queryKey: string) {
   const qc = useQueryClient();
   useEffect(() => {
-    const ch = supabase.channel(`rt-${table}`)
+    const ch = db.channel(`rt-${table}`)
       .on("postgres_changes" as any, { event: "*", schema: "public", table }, () => {
         qc.invalidateQueries({ queryKey: [queryKey] });
       })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => { db.removeChannel(ch); };
   }, [table, queryKey, qc]);
 }
 
@@ -154,7 +154,7 @@ function NoticesTab({ isAdmin }: { isAdmin: boolean }) {
   const q = useQuery({
     queryKey: ["internal_notices"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("internal_notices" as any)
+      const { data, error } = await db.from("internal_notices" as any)
         .select("*").order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as Notice[];
@@ -167,7 +167,7 @@ function NoticesTab({ isAdmin }: { isAdmin: boolean }) {
       if (!form.title.trim() || !form.body.trim()) throw new Error("Title & body required");
       if (form.audience === "specific" && form.recipient_ids.length === 0)
         throw new Error("Select at least one recipient");
-      const { error } = await supabase.from("internal_notices" as any).insert({
+      const { error } = await db.from("internal_notices" as any).insert({
         sender_id: user.id, sender_name: user.name,
         title: form.title, body: form.body, priority: form.priority,
         audience: form.audience,
@@ -188,7 +188,7 @@ function NoticesTab({ isAdmin }: { isAdmin: boolean }) {
   const markRead = useMutation({
     mutationFn: async (n: Notice) => {
       if (!user || n.read_by?.includes(user.id)) return;
-      await supabase.from("internal_notices" as any)
+      await db.from("internal_notices" as any)
         .update({ read_by: [...(n.read_by ?? []), user.id] } as any).eq("id", n.id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["internal_notices"] }),
@@ -196,7 +196,7 @@ function NoticesTab({ isAdmin }: { isAdmin: boolean }) {
 
   const del = useMutation({
     mutationFn: async (id: string) => {
-      await supabase.from("internal_notices" as any).delete().eq("id", id);
+      await db.from("internal_notices" as any).delete().eq("id", id);
     },
     onSuccess: () => { toast.success("Removed"); qc.invalidateQueries({ queryKey: ["internal_notices"] }); },
   });
@@ -375,7 +375,7 @@ function MessagesTab({ isAdmin }: { isAdmin: boolean }) {
   const q = useQuery({
     queryKey: ["internal_messages"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("internal_messages" as any)
+      const { data, error } = await db.from("internal_messages" as any)
         .select("*").order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as Message[];
@@ -439,7 +439,7 @@ function MessagesTab({ isAdmin }: { isAdmin: boolean }) {
         attachments: payload.attachments ?? [],
       };
       if (payload.thread_id) row.thread_id = payload.thread_id;
-      const { error } = await supabase.from("internal_messages" as any).insert(row);
+      const { error } = await db.from("internal_messages" as any).insert(row);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -454,7 +454,7 @@ function MessagesTab({ isAdmin }: { isAdmin: boolean }) {
       if (!user) return;
       const ids = msgs.filter((m) => !m.is_read && m.recipient_id === user.id).map((m) => m.id);
       if (ids.length === 0) return;
-      await supabase.from("internal_messages" as any).update({ is_read: true } as any).in("id", ids);
+      await db.from("internal_messages" as any).update({ is_read: true } as any).in("id", ids);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["internal_messages"] }),
   });
@@ -492,7 +492,7 @@ function MessagesTab({ isAdmin }: { isAdmin: boolean }) {
     const peerName = lastMsg.sender_id === user.id ? lastMsg.recipient_name : lastMsg.sender_name;
     const room = `devionic-${crypto.randomUUID().slice(0, 12)}`;
     try {
-      await supabase.from("meetings" as any).insert({
+      await db.from("meetings" as any).insert({
         title: `${audioOnly ? "Audio" : "Video"} call with ${peerName}`,
         host_id: user.id, host_name: user.name,
         participant_ids: [peerId], participant_names: [peerName],
@@ -705,7 +705,7 @@ function MeetingsTab({ isAdmin }: { isAdmin: boolean }) {
   const q = useQuery({
     queryKey: ["meetings"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("meetings" as any)
+      const { data, error } = await db.from("meetings" as any)
         .select("*").order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as Meeting[];
@@ -718,7 +718,7 @@ function MeetingsTab({ isAdmin }: { isAdmin: boolean }) {
       if (!form.title.trim()) throw new Error("Title required");
       const room = `devionic-${crypto.randomUUID().slice(0, 12)}`;
       const chosen = (usersQ.data ?? []).filter((u) => form.participant_ids.includes(u.auth_user_id ?? ""));
-      const { error } = await supabase.from("meetings" as any).insert({
+      const { error } = await db.from("meetings" as any).insert({
         title: form.title, description: form.description || null,
         host_id: user.id, host_name: user.name,
         participant_ids: form.audience === "specific" ? form.participant_ids : [],
@@ -750,7 +750,7 @@ function MeetingsTab({ isAdmin }: { isAdmin: boolean }) {
 
   const endMeeting = useMutation({
     mutationFn: async (m: Meeting) => {
-      await supabase.from("meetings" as any)
+      await db.from("meetings" as any)
         .update({ status: "ended", ended_at: new Date().toISOString() } as any).eq("id", m.id);
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["meetings"] }); toast.success("Meeting ended"); },
@@ -758,13 +758,13 @@ function MeetingsTab({ isAdmin }: { isAdmin: boolean }) {
 
   const attachRecording = useMutation({
     mutationFn: async ({ id, url }: { id: string; url: string }) => {
-      await supabase.from("meetings" as any).update({ recording_url: url } as any).eq("id", id);
+      await db.from("meetings" as any).update({ recording_url: url } as any).eq("id", id);
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["meetings"] }); toast.success("Recording saved"); },
   });
 
   const del = useMutation({
-    mutationFn: async (id: string) => { await supabase.from("meetings" as any).delete().eq("id", id); },
+    mutationFn: async (id: string) => { await db.from("meetings" as any).delete().eq("id", id); },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["meetings"] }),
   });
 

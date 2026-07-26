@@ -14,7 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 
 export const Route = createFileRoute("/logs")({
   head: () => ({ meta: [{ title: "System Logs — Devionic DMS" }] }),
@@ -59,8 +59,8 @@ function useLogs(table: string, filter?: (q: any) => any) {
   return useQuery({
     queryKey: ["logs", table],
     queryFn: async () => {
-      let q = supabase.from(table as any).select("*").order("created_at", { ascending: false }).limit(500);
-      if (table === "user_login_logs") q = supabase.from(table as any).select("*").order("login_at", { ascending: false }).limit(500);
+      let q = db.from(table as any).select("*").order("created_at", { ascending: false }).limit(500);
+      if (table === "user_login_logs") q = db.from(table as any).select("*").order("login_at", { ascending: false }).limit(500);
       if (filter) q = filter(q);
       const { data, error } = await q;
       if (error) throw error;

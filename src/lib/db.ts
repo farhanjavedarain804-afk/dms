@@ -301,12 +301,12 @@ function deserializeRow(row: any): any {
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
-/** Drop-in replacement for `supabase.from(table)` */
+/** Drop-in replacement for `db.from(table)` */
 export function db(table: string): QueryBuilder {
   return new QueryBuilder(table);
 }
 
-/** Convenience: call a function/procedure (replaces supabase.rpc) */
+/** Convenience: call a function/procedure (replaces db.rpc) */
 export async function rpc(fnName: string, args: Record<string, any> = {}): Promise<{ data: any; error: Error | null }> {
   try {
     const keys = Object.keys(args);

@@ -1,7 +1,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 
 const COLORS: Record<string, string> = {
   completed: "oklch(0.68 0.18 155)",
@@ -27,7 +27,7 @@ export function ProjectsStatus() {
   const q = useQuery({
     queryKey: ["projects", "status-breakdown"],
     queryFn: async () => {
-      const { data } = await supabase.from("projects").select("status");
+      const { data } = await db.from("projects").select("status");
       const counts: Record<string, number> = {};
       (data ?? []).forEach((r: any) => {
         const s = String(r.status ?? "not_started").toLowerCase().replace(/\s+/g, "_");

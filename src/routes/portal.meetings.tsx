@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { CalendarDays, Plus, Video } from "lucide-react";
 import { usePortalIdentity } from "@/lib/portal-auth";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 import { Button } from "@/components/ui/button";
 import { MeetingRoom } from "@/components/dms/MeetingRoom";
 import { toast } from "sonner";
@@ -70,7 +70,7 @@ function PortalMeetings() {
         () => refresh(),
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { db.removeChannel(channel); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
@@ -85,7 +85,7 @@ function PortalMeetings() {
       `Requested by: ${displayName}${ident.company ? ` (${ident.company})` : ""}`,
       ident.clientId ? `Client ID: ${ident.clientId}` : "",
     ].filter(Boolean).join("\n");
-    const { error } = await supabase.from("meetings" as any).insert({
+    const { error } = await db.from("meetings" as any).insert({
       title: REQUEST_PREFIX + form.title.trim(),
       description,
       host_id: user.id,

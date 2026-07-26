@@ -6,7 +6,7 @@ import { PDFDocument } from "pdf-lib";
 import QRCode from "qrcode";
 import { COMPANY } from "@/lib/company";
 import { PK_PROVINCES } from "@/lib/pk";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 import devionicLogoAsset from "@/assets/devionic-logo.png.asset.json";
 import type { Employee } from "@/lib/api";
 
@@ -46,7 +46,7 @@ async function getDocumentMeta(path?: string): Promise<{ name: string; size: num
   const folder = slash >= 0 ? path.slice(0, slash) : "";
   const filename = slash >= 0 ? path.slice(slash + 1) : path;
   try {
-    const { data, error } = await supabase.storage
+    const { data, error } = await db.storage
       .from("employee-documents")
       .list(folder, { search: filename, limit: 1 });
     if (error || !data || data.length === 0) return { name: filename, size: 0 };
@@ -761,7 +761,7 @@ export async function generateEmployeeFormPdf(emp: Employee): Promise<Uint8Array
 // ---------------- documents merge & download ----------------
 async function fetchDocumentsPdfBytes(path: string): Promise<Uint8Array | null> {
   try {
-    const { data, error } = await supabase.storage
+    const { data, error } = await db.storage
       .from("employee-documents")
       .createSignedUrl(path, 300);
     if (error || !data?.signedUrl) return null;

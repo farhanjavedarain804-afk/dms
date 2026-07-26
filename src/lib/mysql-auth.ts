@@ -1,7 +1,7 @@
 /**
  * mysql-auth.ts
  * Custom JWT-based authentication backed by MySQL.
- * Replaces supabase.auth.signInWithPassword / supabase.auth.getSession / supabase.auth.signOut
+ * Replaces db.auth.signInWithPassword / db.auth.getSession / db.auth.signOut
  */
 
 import { query, queryOne, execute } from './mysql';

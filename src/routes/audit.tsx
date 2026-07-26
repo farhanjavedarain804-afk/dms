@@ -27,7 +27,7 @@ import { useAuth } from "@/lib/auth";
 // Preview/Print/Download so the initial route paint stays fast.
 const loadLetterhead = () => import("@/lib/letterhead-pdf");
 import { generatedDocs, type GeneratedDoc } from "@/lib/generated-docs";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 import { useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 
@@ -146,7 +146,7 @@ async function snapshotDataFor(keys: string[]): Promise<Record<string, any>> {
       try {
         // Keep payload small — server also truncates, but limit here to avoid
         // "Failed to fetch" from oversized request bodies on the edge worker.
-        const { data, error, count } = await supabase.from(table as any).select("*", { count: "exact" }).limit(25);
+        const { data, error, count } = await db.from(table as any).select("*", { count: "exact" }).limit(25);
         return [k, error ? { error: error.message } : compactDataset({ count: count ?? data?.length ?? 0, sample: data ?? [] })] as const;
       } catch (e: any) {
         return [k, { error: String(e?.message || e) }] as const;

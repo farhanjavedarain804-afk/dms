@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FolderKanban, Calendar, TrendingUp, CheckCircle2, Loader2, PauseCircle, Clock, Radio } from "lucide-react";
 import { resources } from "@/lib/api";
 import { usePortalIdentity } from "@/lib/portal-auth";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 
 export const Route = createFileRoute("/portal/projects")({
   head: () => ({
@@ -41,7 +41,7 @@ function PortalProjects() {
       })
       .subscribe();
     return () => {
-      supabase.removeChannel(channel);
+      db.removeChannel(channel);
     };
   }, [qc]);
 

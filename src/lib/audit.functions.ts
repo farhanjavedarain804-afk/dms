@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/auth-middleware";
 import { z } from "zod";
 import { buildRequest, callProvider, getProviderDefaultModel } from "./ai-provider";
 
@@ -81,7 +81,7 @@ function extractJson(text: string): any {
 }
 
 export const runAuditReport = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((data: unknown) => auditSchema.parse(data))
   .handler(async ({ data }): Promise<AuditReport> => {
     // Compact snapshot to control context size — keep it small so the model responds fast

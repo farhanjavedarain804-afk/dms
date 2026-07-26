@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db-client";
 
 // Tables that drive KPI cards and cross-module stats.
 const TABLES = [
@@ -20,7 +20,7 @@ export function RealtimeSync() {
   const dirty = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let channel: ReturnType<typeof db.channel> | null = null;
     let cancelled = false;
 
     const flush = () => {
@@ -52,7 +52,7 @@ export function RealtimeSync() {
 
     const start = () => {
       if (cancelled || channel) return;
-      channel = supabase.channel("dms-realtime-kpi");
+      channel = db.channel("dms-realtime-kpi");
       for (const t of TABLES) {
         channel.on(
           "postgres_changes",
@@ -80,7 +80,7 @@ export function RealtimeSync() {
         clearTimeout(timer.current);
         timer.current = null;
       }
-      if (channel) supabase.removeChannel(channel);
+      if (channel) db.removeChannel(channel);
     };
   }, [qc]);
 
