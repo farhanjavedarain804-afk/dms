@@ -27,43 +27,53 @@ const SESSION_TTL_HOURS = 24 * 7; // 7 days
 
 // ── DB Schema Bootstrap ───────────────────────────────────────────────────────
 
+let authTablesEnsured = false;
+
 export async function ensureAuthTables(): Promise<void> {
-  await execute(`
-    CREATE TABLE IF NOT EXISTS app_users (
-      id           INT AUTO_INCREMENT PRIMARY KEY,
-      email        VARCHAR(255) NOT NULL UNIQUE,
-      name         VARCHAR(255),
-      role         VARCHAR(100) DEFAULT 'Member',
-      password_hash VARCHAR(64)  NOT NULL,
-      salt          VARCHAR(64)  NOT NULL,
-      is_active     TINYINT(1)   DEFAULT 1,
-      last_login    DATETIME,
-      created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-  `);
+  if (authTablesEnsured) return; // Only run once per process
+  try {
+    await execute(`
+      CREATE TABLE IF NOT EXISTS app_users (
+        id           INT AUTO_INCREMENT PRIMARY KEY,
+        email        VARCHAR(255) NOT NULL UNIQUE,
+        name         VARCHAR(255),
+        role         VARCHAR(100) DEFAULT 'Member',
+        password_hash VARCHAR(64)  NOT NULL,
+        salt          VARCHAR(64)  NOT NULL,
+        is_active     TINYINT(1)   DEFAULT 1,
+        last_login    DATETIME,
+        created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
 
-  await execute(`
-    CREATE TABLE IF NOT EXISTS user_sessions (
-      id         INT AUTO_INCREMENT PRIMARY KEY,
-      user_id    INT NOT NULL,
-      token      VARCHAR(96) NOT NULL UNIQUE,
-      expires_at DATETIME NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES app_users(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-  `);
+    await execute(`
+      CREATE TABLE IF NOT EXISTS user_sessions (
+        id         INT AUTO_INCREMENT PRIMARY KEY,
+        user_id    INT NOT NULL,
+        token      VARCHAR(96) NOT NULL UNIQUE,
+        expires_at DATETIME NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES app_users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
 
-  await execute(`
-    CREATE TABLE IF NOT EXISTS user_login_logs (
-      id         INT AUTO_INCREMENT PRIMARY KEY,
-      user_id    INT,
-      email      VARCHAR(255),
-      action     VARCHAR(50),
-      ip         VARCHAR(50),
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-  `);
+    await execute(`
+      CREATE TABLE IF NOT EXISTS user_login_logs (
+        id         INT AUTO_INCREMENT PRIMARY KEY,
+        user_id    INT,
+        email      VARCHAR(255),
+        action     VARCHAR(50),
+        ip         VARCHAR(50),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    authTablesEnsured = true;
+  } catch (err) {
+    // Log but don't crash the app - pages will show a proper error if DB is unreachable
+    console.error('[ensureAuthTables] Could not create auth tables:', err);
+  }
 }
 
 // ── Auth operations ──────────────────────────────────────────────────────────

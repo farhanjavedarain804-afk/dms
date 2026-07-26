@@ -28,8 +28,13 @@ export const $signOut = createServerFn({ method: 'POST' })
 export const $getSession = createServerFn({ method: 'GET' })
   .validator((data: { token: string }) => data)
   .handler(async ({ data }) => {
-    await ensureAuthTables();
-    return getSession(data.token);
+    try {
+      await ensureAuthTables();
+      return await getSession(data.token);
+    } catch (err) {
+      console.error('[getSession] DB error:', err);
+      return null; // return null so auth context knows user is not logged in
+    }
   });
 
 export const $createUser = createServerFn({ method: 'POST' })
@@ -56,32 +61,42 @@ export const $getUserById = createServerFn({ method: 'GET' })
 export const $dbList = createServerFn({ method: 'GET' })
   .validator((data: { table: string; orderBy?: string; ascending?: boolean; limit?: number; filters?: { col: string; op: string; val: any }[] }) => data)
   .handler(async ({ data }) => {
-    let q = db(data.table).select('*');
-    if (data.filters) {
-      for (const f of data.filters) {
-        if (f.op === 'eq') q = q.eq(f.col, f.val);
-        else if (f.op === 'neq') q = q.neq(f.col, f.val);
-        else if (f.op === 'gte') q = q.gte(f.col, f.val);
-        else if (f.op === 'lte') q = q.lte(f.col, f.val);
-        else if (f.op === 'gt') q = q.gt(f.col, f.val);
-        else if (f.op === 'lt') q = q.lt(f.col, f.val);
-        else if (f.op === 'ilike') q = q.ilike(f.col, f.val);
-        else if (f.op === 'in') q = q.in(f.col, f.val);
+    try {
+      let q = db(data.table).select('*');
+      if (data.filters) {
+        for (const f of data.filters) {
+          if (f.op === 'eq') q = q.eq(f.col, f.val);
+          else if (f.op === 'neq') q = q.neq(f.col, f.val);
+          else if (f.op === 'gte') q = q.gte(f.col, f.val);
+          else if (f.op === 'lte') q = q.lte(f.col, f.val);
+          else if (f.op === 'gt') q = q.gt(f.col, f.val);
+          else if (f.op === 'lt') q = q.lt(f.col, f.val);
+          else if (f.op === 'ilike') q = q.ilike(f.col, f.val);
+          else if (f.op === 'in') q = q.in(f.col, f.val);
+        }
       }
+      if (data.orderBy) q = q.order(data.orderBy, { ascending: data.ascending ?? false });
+      if (data.limit) q = q.limit(data.limit);
+      const { data: rows, error } = await q;
+      if (error) { console.error(`[$dbList] ${data.table}:`, error.message); return []; }
+      return rows ?? [];
+    } catch (err: any) {
+      console.error(`[$dbList] ${data.table}:`, err?.message);
+      return [];
     }
-    if (data.orderBy) q = q.order(data.orderBy, { ascending: data.ascending ?? false });
-    if (data.limit) q = q.limit(data.limit);
-    const { data: rows, error } = await q;
-    if (error) throw error;
-    return rows ?? [];
   });
 
 export const $dbGet = createServerFn({ method: 'GET' })
   .validator((data: { table: string; id: number | string }) => data)
   .handler(async ({ data }) => {
-    const { data: row, error } = await db(data.table).select('*').eq('id', data.id).single();
-    if (error) throw error;
-    return row;
+    try {
+      const { data: row, error } = await db(data.table).select('*').eq('id', data.id).single();
+      if (error) { console.error(`[$dbGet] ${data.table}:`, error.message); return null; }
+      return row;
+    } catch (err: any) {
+      console.error(`[$dbGet] ${data.table}:`, err?.message);
+      return null;
+    }
   });
 
 export const $dbCreate = createServerFn({ method: 'POST' })
@@ -111,38 +126,48 @@ export const $dbDelete = createServerFn({ method: 'POST' })
 export const $dbCount = createServerFn({ method: 'GET' })
   .validator((data: { table: string; filters?: { col: string; op: string; val: any }[] }) => data)
   .handler(async ({ data }) => {
-    let q = db(data.table).select('*', { count: 'exact', head: true });
-    if (data.filters) {
-      for (const f of data.filters) {
-        if (f.op === 'eq') q = q.eq(f.col, f.val);
+    try {
+      let q = db(data.table).select('*', { count: 'exact', head: true });
+      if (data.filters) {
+        for (const f of data.filters) {
+          if (f.op === 'eq') q = q.eq(f.col, f.val);
+        }
       }
+      const { count, error } = await q;
+      if (error) { console.error(`[$dbCount] ${data.table}:`, error.message); return 0; }
+      return count ?? 0;
+    } catch (err: any) {
+      console.error(`[$dbCount] ${data.table}:`, err?.message);
+      return 0;
     }
-    const { count, error } = await q;
-    if (error) throw error;
-    return count ?? 0;
   });
 
 export const $dbCustomQuery = createServerFn({ method: 'POST' })
   .validator((data: { table: string; columns?: string; filters?: { col: string; op: string; val: any }[]; orderBy?: string; ascending?: boolean; limit?: number }) => data)
   .handler(async ({ data }) => {
-    let q = db(data.table).select(data.columns ?? '*');
-    if (data.filters) {
-      for (const f of data.filters) {
-        if (f.op === 'eq') q = q.eq(f.col, f.val);
-        else if (f.op === 'neq') q = q.neq(f.col, f.val);
-        else if (f.op === 'gte') q = q.gte(f.col, f.val);
-        else if (f.op === 'lte') q = q.lte(f.col, f.val);
-        else if (f.op === 'gt') q = q.gt(f.col, f.val);
-        else if (f.op === 'lt') q = q.lt(f.col, f.val);
-        else if (f.op === 'ilike') q = q.ilike(f.col, f.val);
-        else if (f.op === 'in') q = q.in(f.col, f.val);
+    try {
+      let q = db(data.table).select(data.columns ?? '*');
+      if (data.filters) {
+        for (const f of data.filters) {
+          if (f.op === 'eq') q = q.eq(f.col, f.val);
+          else if (f.op === 'neq') q = q.neq(f.col, f.val);
+          else if (f.op === 'gte') q = q.gte(f.col, f.val);
+          else if (f.op === 'lte') q = q.lte(f.col, f.val);
+          else if (f.op === 'gt') q = q.gt(f.col, f.val);
+          else if (f.op === 'lt') q = q.lt(f.col, f.val);
+          else if (f.op === 'ilike') q = q.ilike(f.col, f.val);
+          else if (f.op === 'in') q = q.in(f.col, f.val);
+        }
       }
+      if (data.orderBy) q = q.order(data.orderBy, { ascending: data.ascending ?? true });
+      if (data.limit) q = q.limit(data.limit);
+      const { data: rows, error } = await q;
+      if (error) { console.error(`[$dbCustomQuery] ${data.table}:`, error.message); return []; }
+      return rows ?? [];
+    } catch (err: any) {
+      console.error(`[$dbCustomQuery] ${data.table}:`, err?.message);
+      return [];
     }
-    if (data.orderBy) q = q.order(data.orderBy, { ascending: data.ascending ?? true });
-    if (data.limit) q = q.limit(data.limit);
-    const { data: rows, error } = await q;
-    if (error) throw error;
-    return rows ?? [];
   });
 
 export const $rpc = createServerFn({ method: 'POST' })
