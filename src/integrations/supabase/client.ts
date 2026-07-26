@@ -304,5 +304,22 @@ export const supabase = {
         }
       };
     }
+  },
+  channel(name: string) {
+    return {
+      on(event: string, filter: any, callback: any) {
+        return this;
+      },
+      subscribe(callback?: (status: string) => void) {
+        if (callback) callback('SUBSCRIBED');
+        return this;
+      },
+      unsubscribe() {
+        return Promise.resolve();
+      }
+    };
+  },
+  async removeChannel(channel: any) {
+    return Promise.resolve();
   }
 };
