@@ -73,8 +73,11 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
       .replace(/timestamp\s+with\s+time\s+zone/gi, 'datetime')
       .replace(/timestamp\s+without\s+time\s+zone/gi, 'datetime')
       .replace(/now\(\)/gi, 'CURRENT_TIMESTAMP')
+      .replace(/gen_random_uuid\(\)/gi, '(uuid())')
       .replace(/uuid_generate_v4\(\)/gi, '(uuid())')
-      .replace(/uuid/gi, 'varchar(36)')
+      .replace(/\buuid\b/gi, 'varchar(36)')
+      .replace(/\bapp_role\b/gi, 'varchar(50)')
+      .replace(/auth\.users/gi, 'app_users')
       .replace(/jsonb/gi, 'json')
       .replace(/boolean/gi, 'tinyint(1)')
       .replace(/text\s*\[\s*\]/gi, 'json')
@@ -82,7 +85,7 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
       .replace(/numeric/gi, 'decimal(15,2)')
       .replace(/without\s+time\s+zone/gi, '')
       .replace(/references\s+\S+\(id\)\s+on\s+delete\s+cascade/gi, (match) => {
-        return match.replace(/public\./gi, '');
+        return match.replace(/public\./gi, '').replace(/auth\./gi, '');
       });
 
     // If it's a create table, make sure ID columns that are primary keys are signed properly if referenced,
@@ -115,7 +118,7 @@ async function run() {
   
   let combinedSqlDump = `-- Auto-generated MySQL Schema\n\n`;
   combinedSqlDump += `CREATE TABLE IF NOT EXISTS app_users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
   email VARCHAR(255) NOT NULL UNIQUE,
   name VARCHAR(255),
   role VARCHAR(100) DEFAULT 'Member',
@@ -129,7 +132,7 @@ async function run() {
 
   combinedSqlDump += `CREATE TABLE IF NOT EXISTS user_sessions (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
+  user_id VARCHAR(36) NOT NULL,
   token VARCHAR(96) NOT NULL UNIQUE,
   expires_at DATETIME NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -169,7 +172,7 @@ async function run() {
   console.log('Ensuring core auth tables...');
   await conn.query(`
     CREATE TABLE IF NOT EXISTS app_users (
-      id INT AUTO_INCREMENT PRIMARY KEY,
+      id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
       email VARCHAR(255) NOT NULL UNIQUE,
       name VARCHAR(255),
       role VARCHAR(100) DEFAULT 'Member',
@@ -185,7 +188,7 @@ async function run() {
   await conn.query(`
     CREATE TABLE IF NOT EXISTS user_sessions (
       id INT AUTO_INCREMENT PRIMARY KEY,
-      user_id INT NOT NULL,
+      user_id VARCHAR(36) NOT NULL,
       token VARCHAR(96) NOT NULL UNIQUE,
       expires_at DATETIME NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

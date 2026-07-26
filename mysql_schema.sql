@@ -1,7 +1,7 @@
 -- Auto-generated MySQL Schema
 
 CREATE TABLE IF NOT EXISTS app_users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
   email VARCHAR(255) NOT NULL UNIQUE,
   name VARCHAR(255),
   role VARCHAR(100) DEFAULT 'Member',
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS app_users (
 
 CREATE TABLE IF NOT EXISTS user_sessions (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
+  user_id VARCHAR(36) NOT NULL,
   token VARCHAR(96) NOT NULL UNIQUE,
   expires_at DATETIME NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -305,20 +305,20 @@ ALTER TABLE tasks
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT '[]';
 
 CREATE TABLE IF NOT EXISTS user_roles (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
-  user_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  role app_role NOT NULL,
+  id varchar(36) PRIMARY KEY DEFAULT (varchar(36)()),
+  user_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+  role varchar(50) NOT NULL,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (user_id, role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS app_users (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
-  auth_user_id varchar(36) UNIQUE REFERENCES auth.users(id) ON DELETE SET NULL,
+  auth_user_id varchar(36) UNIQUE REFERENCES app_users(id) ON DELETE SET NULL,
   username TEXT UNIQUE NOT NULL,
   full_name TEXT NOT NULL,
   email TEXT NOT NULL,
-  role app_role NOT NULL DEFAULT 'employee',
+  role varchar(50) NOT NULL DEFAULT 'employee',
   department TEXT,
   phone TEXT,
   status TEXT NOT NULL DEFAULT 'active',
@@ -330,7 +330,7 @@ CREATE TABLE IF NOT EXISTS app_users (
 
 CREATE TABLE IF NOT EXISTS user_activity_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
-  auth_user_id varchar(36) REFERENCES auth.users(id) ON DELETE SET NULL,
+  auth_user_id varchar(36) REFERENCES app_users(id) ON DELETE SET NULL,
   username TEXT,
   full_name TEXT,
   action TEXT NOT NULL,
@@ -344,7 +344,7 @@ CREATE TABLE IF NOT EXISTS user_activity_logs (
 
 CREATE TABLE IF NOT EXISTS user_login_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
-  auth_user_id varchar(36) REFERENCES auth.users(id) ON DELETE SET NULL,
+  auth_user_id varchar(36) REFERENCES app_users(id) ON DELETE SET NULL,
   username TEXT,
   full_name TEXT,
   email TEXT,
@@ -393,8 +393,8 @@ CREATE TABLE feedback_calls (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE internal_notices (
-  id varchar(36) NOT NULL DEFAULT gen_random_varchar(36)() PRIMARY KEY,
-  sender_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  id varchar(36) NOT NULL DEFAULT (varchar(36)()) PRIMARY KEY,
+  sender_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   sender_name TEXT NOT NULL,
   title TEXT NOT NULL,
   body TEXT NOT NULL,
@@ -407,11 +407,11 @@ CREATE TABLE internal_notices (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE internal_messages (
-  id varchar(36) NOT NULL DEFAULT gen_random_varchar(36)() PRIMARY KEY,
-  thread_id varchar(36) NOT NULL DEFAULT gen_random_varchar(36)(),
-  sender_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  id varchar(36) NOT NULL DEFAULT (varchar(36)()) PRIMARY KEY,
+  thread_id varchar(36) NOT NULL DEFAULT (varchar(36)()),
+  sender_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   sender_name TEXT NOT NULL,
-  recipient_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  recipient_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   recipient_name TEXT NOT NULL,
   subject TEXT,
   body TEXT NOT NULL,
@@ -433,10 +433,10 @@ ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS attachments json NOT NULL
 ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS message_type TEXT NOT NULL DEFAULT 'text';
 
 CREATE TABLE meetings (
-  id varchar(36) NOT NULL DEFAULT gen_random_varchar(36)() PRIMARY KEY,
+  id varchar(36) NOT NULL DEFAULT (varchar(36)()) PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
-  host_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  host_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   host_name TEXT NOT NULL,
   participant_ids varchar(36)[] NOT NULL DEFAULT '{}',
   participant_names json NOT NULL DEFAULT '{}',
@@ -506,7 +506,7 @@ ALTER TABLE otp_logs REPLICA IDENTITY FULL;
 ALTER TABLE email_logs REPLICA IDENTITY FULL;
 
 CREATE TABLE leave_types (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
+  id varchar(36) PRIMARY KEY DEFAULT (varchar(36)()),
   name text NOT NULL UNIQUE,
   code text,
   color text DEFAULT '#3b82f6',
@@ -519,7 +519,7 @@ CREATE TABLE leave_types (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE leave_balances (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
+  id varchar(36) PRIMARY KEY DEFAULT (varchar(36)()),
   employee_id varchar(36) NOT NULL,
   leave_type_id varchar(36) NOT NULL REFERENCES leave_types(id) ON DELETE CASCADE,
   year int NOT NULL,
@@ -535,7 +535,7 @@ CREATE TABLE leave_balances (
 CREATE INDEX leave_balances_emp_year_idx ON leave_balances(employee_id, year);
 
 CREATE TABLE leave_requests (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
+  id varchar(36) PRIMARY KEY DEFAULT (varchar(36)()),
   employee_id varchar(36) NOT NULL,
   employee_name text,
   leave_type_id varchar(36) REFERENCES leave_types(id) ON DELETE SET NULL,
@@ -562,7 +562,7 @@ CREATE INDEX leave_requests_status_idx ON leave_requests(status);
 CREATE INDEX leave_requests_dates_idx ON leave_requests(start_date, end_date);
 
 CREATE TABLE holidays (
-  id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
+  id varchar(36) PRIMARY KEY DEFAULT (varchar(36)()),
   name text NOT NULL,
   holiday_date date NOT NULL,
   type text NOT NULL DEFAULT 'public',
