@@ -6,9 +6,25 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 export default defineConfig({
   plugins: [
     tanstackStart({
-      server: { preset: "node-server", entry: "server" }
+      server: {
+        entry: "server",
+      },
     }),
     tailwindcss(),
     tsconfigPaths(),
-  ]
+  ],
+  environments: {
+    client: {
+      build: {
+        outDir: ".output/public",
+      },
+    },
+    ssr: {
+      build: {
+        outDir: ".output/server",
+      },
+    },
+  },
 });
+
+
