@@ -400,8 +400,8 @@ CREATE TABLE internal_notices (
   body TEXT NOT NULL,
   priority TEXT NOT NULL DEFAULT 'normal',
   audience TEXT NOT NULL DEFAULT 'all',
-  recipient_ids varchar(36)[] NOT NULL DEFAULT '{}',
-  read_by varchar(36)[] NOT NULL DEFAULT '{}',
+  recipient_ids json NOT NULL DEFAULT '{}',
+  read_by json NOT NULL DEFAULT '{}',
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -438,7 +438,7 @@ CREATE TABLE meetings (
   description TEXT,
   host_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   host_name TEXT NOT NULL,
-  participant_ids varchar(36)[] NOT NULL DEFAULT '{}',
+  participant_ids json NOT NULL DEFAULT '{}',
   participant_names json NOT NULL DEFAULT '{}',
   room_name TEXT NOT NULL UNIQUE,
   meeting_type TEXT NOT NULL DEFAULT 'video',
@@ -498,12 +498,6 @@ CREATE TABLE email_logs (
   auth_user_id varchar(36),
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-ALTER TABLE system_logs REPLICA IDENTITY FULL;
-
-ALTER TABLE otp_logs REPLICA IDENTITY FULL;
-
-ALTER TABLE email_logs REPLICA IDENTITY FULL;
 
 CREATE TABLE leave_types (
   id varchar(36) PRIMARY KEY DEFAULT (uuid()),

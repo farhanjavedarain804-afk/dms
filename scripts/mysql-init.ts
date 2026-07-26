@@ -49,7 +49,7 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
 
     // Ignore pg-specific commands and permissions
     if (
-      /^\s*(grant|revoke|alter\s+table\s+\S+\s+enable|create\s+policy|drop\s+policy|alter\s+publication|select\s+cron|create\s+function|create\s+or\s+replace\s+function|drop\s+function|create\s+trigger|drop\s+trigger|create\s+type|drop\s+type)/i.test(stmt)
+      /^\s*(grant|revoke|alter\s+table\s+\S+\s+enable|alter\s+table\s+\S+\s+replica\s+identity|create\s+policy|drop\s+policy|alter\s+publication|select\s+cron|create\s+function|create\s+or\s+replace\s+function|drop\s+function|create\s+trigger|drop\s+trigger|create\s+type|drop\s+type)/i.test(stmt)
     ) {
       continue;
     }
@@ -82,7 +82,9 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
       .replace(/jsonb/gi, 'json')
       .replace(/boolean/gi, 'tinyint(1)')
       .replace(/text\s*\[\s*\]/gi, 'json')
+      .replace(/varchar\s*\(\s*\d+\s*\)\s*\[\s*\]/gi, 'json')
       .replace(/varchar\s*\[\s*\]/gi, 'json')
+      .replace(/uuid\s*\[\s*\]/gi, 'json')
       .replace(/numeric/gi, 'decimal(15,2)')
       .replace(/without\s+time\s+zone/gi, '')
       .replace(/references\s+\S+\(id\)\s+on\s+delete\s+cascade/gi, (match) => {
