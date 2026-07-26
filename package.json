@@ -9,7 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "start": "NODE_ENV=production node .output/server/server.js",
-    "postbuild": "node -e \"require('fs').writeFileSync('.output/package.json', JSON.stringify({type: 'module'}))\"",
+    "postbuild": "node -e \"require('fs').writeFileSync('.output/package.json', JSON.stringify({type: 'module'}))\" && node scripts/copy-server-deps.mjs",
     "db:init": "tsx scripts/mysql-init.ts",
     "lint": "eslint .",
     "format": "prettier --write ."

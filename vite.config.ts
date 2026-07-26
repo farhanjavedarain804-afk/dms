@@ -3,6 +3,15 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
+const NODE_BUILTINS = [
+  /^node:/,
+  "http", "https", "fs", "path", "url", "stream", "crypto", "os",
+  "process", "buffer", "events", "util", "net", "tls", "dns",
+  "child_process", "worker_threads", "assert", "zlib", "readline",
+  "cluster", "dgram", "domain", "punycode", "querystring", "string_decoder",
+  "timers", "tty", "v8", "vm", "wasi",
+];
+
 export default defineConfig({
   plugins: [
     tanstackStart({
@@ -13,6 +22,12 @@ export default defineConfig({
     tailwindcss(),
     tsconfigPaths(),
   ],
+  // Bundle ALL npm packages into the server output so it works
+  // on hosts (like Hostinger) where node_modules is not available at runtime
+  ssr: {
+    noExternal: true,
+    external: ["mysql2", "mysql2/promise"],
+  },
   environments: {
     client: {
       build: {
@@ -20,28 +35,11 @@ export default defineConfig({
       },
     },
     ssr: {
-      noExternal: true,
       build: {
         outDir: ".output/server",
         rollupOptions: {
           external: [
-            "node:http",
-            "node:https",
-            "node:fs",
-            "node:path",
-            "node:url",
-            "node:stream",
-            "node:crypto",
-            "node:os",
-            "node:process",
-            "node:buffer",
-            "node:events",
-            "node:util",
-            "node:net",
-            "node:tls",
-            "node:dns",
-            "node:child_process",
-            "node:worker_threads",
+            ...NODE_BUILTINS,
             "mysql2",
             "mysql2/promise",
           ],
@@ -50,5 +48,3 @@ export default defineConfig({
     },
   },
 });
-
-
