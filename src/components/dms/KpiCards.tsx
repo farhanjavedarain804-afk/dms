@@ -22,7 +22,7 @@ function useActiveProjects() {
   return useQuery({
     queryKey: ["projects", "active-count"],
     queryFn: async () => {
-      const { count } = await supabase
+      const { count } = await db
         .from("projects")
         .select("*", { count: "exact", head: true })
         .not("status", "in", "(completed,cancelled,archived)");

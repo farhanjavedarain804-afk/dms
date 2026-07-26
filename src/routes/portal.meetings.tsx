@@ -50,7 +50,7 @@ function PortalMeetings() {
   const refresh = async () => {
     if (!user?.id) return;
     setLoading(true);
-    const { data } = await supabase
+    const { data } = await db
       .from("meetings" as any)
       .select("*")
       .eq("host_id", user.id)

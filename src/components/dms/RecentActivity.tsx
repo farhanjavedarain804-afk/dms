@@ -29,7 +29,7 @@ export function RecentActivity() {
   const q = useQuery({
     queryKey: ["dashboard", "recent-activity"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await db
         .from("user_activity_logs")
         .select("id, action, module, description, full_name, username, created_at")
         .order("created_at", { ascending: false })

@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth-middleware";
 import { z } from "zod";
 import { buildRequest, callProvider, getProviderDefaultModel } from "./ai-provider";
 import { testProviderConnection } from "./ai-provider-test";
+import { db } from "@/lib/db-client";
 
 const contentPartSchema = z.union([
   z.object({ type: z.literal("text"), text: z.string() }),
@@ -485,7 +486,7 @@ async function scanWorkspace(supabase: any) {
       }
       if (t.date) {
         const since = new Date(Date.now() - 7 * 864e5).toISOString();
-        const { count: recent } = await supabase
+        const { count: recent } = await db
           .from(t.table)
           .select("*", { count: "exact", head: true })
           .gte(t.date, since);
