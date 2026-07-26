@@ -298,10 +298,10 @@ CREATE TABLE IF NOT EXISTS project_activity_logs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 ALTER TABLE projects
-  ADD COLUMN IF NOT EXISTS team_members json DEFAULT '{}'::json,
+  ADD COLUMN IF NOT EXISTS team_members json DEFAULT '{}',
   ADD COLUMN IF NOT EXISTS attachment text;
 
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT '[]'::json;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT '[]';
 
 ALTER TABLE tasks
   ADD COLUMN IF NOT EXISTS description text,
@@ -315,7 +315,7 @@ ALTER TABLE tasks
 
 DROP TRIGGER IF EXISTS tasks_touch_updated_at ON tasks;
 
-ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT '[]'::json;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT '[]';
 
 -- Role enum
 DO;
@@ -487,9 +487,9 @@ CREATE INDEX idx_internal_messages_recipient ON internal_messages(recipient_id);
 CREATE INDEX idx_internal_messages_sender ON internal_messages(sender_id);
 
 -- Attachments columns
-ALTER TABLE internal_notices ADD COLUMN IF NOT EXISTS attachments json NOT NULL DEFAULT '[]'::json;
+ALTER TABLE internal_notices ADD COLUMN IF NOT EXISTS attachments json NOT NULL DEFAULT '[]';
 
-ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS attachments json NOT NULL DEFAULT '[]'::json;
+ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS attachments json NOT NULL DEFAULT '[]';
 
 ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS message_type TEXT NOT NULL DEFAULT 'text';
 
@@ -527,7 +527,7 @@ ALTER TABLE app_users
   ADD COLUMN IF NOT EXISTS is_locked tinyint(1) NOT NULL DEFAULT false,
   ADD COLUMN IF NOT EXISTS locked_at datetime,
   ADD COLUMN IF NOT EXISTS lock_reason text,
-  ADD COLUMN IF NOT EXISTS known_ips json NOT NULL DEFAULT '[]'::json,
+  ADD COLUMN IF NOT EXISTS known_ips json NOT NULL DEFAULT '[]',
   ADD COLUMN IF NOT EXISTS last_login_ip text,
   ADD COLUMN IF NOT EXISTS pending_otp_hash text,
   ADD COLUMN IF NOT EXISTS pending_otp_ip text,

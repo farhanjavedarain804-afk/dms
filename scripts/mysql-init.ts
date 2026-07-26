@@ -62,6 +62,7 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
 
     // Basic PG schema to MySQL conversion rules
     let mysqlStmt = stmt
+      .replace(/::[\w\[\]]+/g, '') // strip all postgres type casts like ::json, ::uuid, ::text, ::text[]
       .replace(/public\./g, '') // remove public. schema prefix
       .replace(/bigint\s+generated\s+always\s+as\s+identity\s+primary\s+key/gi, 'bigint AUTO_INCREMENT PRIMARY KEY')
       .replace(/bigint\s+generated\s+by\s+default\s+as\s+identity\s+primary\s+key/gi, 'bigint AUTO_INCREMENT PRIMARY KEY')
