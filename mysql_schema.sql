@@ -1,5 +1,5 @@
 -- Auto-generated MySQL Schema
--- Generated: 2026-07-26T11:18:22.136Z
+-- Generated: 2026-07-26T11:39:50.957Z
 
 SET FOREIGN_KEY_CHECKS=0;
 
@@ -309,31 +309,15 @@ ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT 
 
 CREATE TABLE IF NOT EXISTS user_roles (
   id varchar(36) PRIMARY KEY DEFAULT (uuid()),
-  user_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+  user_id INT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   role varchar(50) NOT NULL,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (user_id, role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS app_users (
-  id BIGint AUTO_INCREMENT PRIMARY KEY,
-  auth_user_id varchar(36) UNIQUE REFERENCES app_users(id) ON DELETE SET NULL,
-  username TEXT UNIQUE NOT NULL,
-  full_name TEXT NOT NULL,
-  email TEXT NOT NULL,
-  role varchar(50) NOT NULL DEFAULT 'employee',
-  department TEXT,
-  phone TEXT,
-  status TEXT NOT NULL DEFAULT 'active',
-  last_seen_at datetime,
-  total_online_seconds BIGINT NOT NULL DEFAULT 0,
-  created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 CREATE TABLE IF NOT EXISTS user_activity_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
-  auth_user_id varchar(36) REFERENCES app_users(id) ON DELETE SET NULL,
+  auth_user_id INT REFERENCES app_users(id) ON DELETE SET NULL,
   username TEXT,
   full_name TEXT,
   action TEXT NOT NULL,
@@ -343,25 +327,6 @@ CREATE TABLE IF NOT EXISTS user_activity_logs (
   ip_address TEXT,
   user_agent TEXT,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS user_login_logs (
-  id BIGint AUTO_INCREMENT PRIMARY KEY,
-  auth_user_id varchar(36) REFERENCES app_users(id) ON DELETE SET NULL,
-  username TEXT,
-  full_name TEXT,
-  email TEXT,
-  ip_address TEXT,
-  user_agent TEXT,
-  device TEXT,
-  browser TEXT,
-  os TEXT,
-  city TEXT,
-  country TEXT,
-  status TEXT NOT NULL DEFAULT 'success',
-  login_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  logout_at datetime,
-  duration_seconds BIGINT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS departments (
@@ -397,7 +362,7 @@ CREATE TABLE feedback_calls (
 
 CREATE TABLE internal_notices (
   id varchar(36) NOT NULL DEFAULT (uuid()) PRIMARY KEY,
-  sender_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+  sender_id INT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   sender_name TEXT NOT NULL,
   title TEXT NOT NULL,
   body TEXT NOT NULL,
@@ -412,9 +377,9 @@ CREATE TABLE internal_notices (
 CREATE TABLE internal_messages (
   id varchar(36) NOT NULL DEFAULT (uuid()) PRIMARY KEY,
   thread_id varchar(36) NOT NULL DEFAULT (uuid()),
-  sender_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+  sender_id INT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   sender_name TEXT NOT NULL,
-  recipient_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+  recipient_id INT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   recipient_name TEXT NOT NULL,
   subject TEXT,
   body TEXT NOT NULL,
@@ -439,7 +404,7 @@ CREATE TABLE meetings (
   id varchar(36) NOT NULL DEFAULT (uuid()) PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
-  host_id varchar(36) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+  host_id INT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   host_name TEXT NOT NULL,
   participant_ids json NOT NULL DEFAULT '{}',
   participant_names json NOT NULL DEFAULT '{}',

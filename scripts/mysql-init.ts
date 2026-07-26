@@ -90,10 +90,23 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
       .replace(/references\s+\S+\(id\)\s+on\s+delete\s+cascade/gi, (match) => {
         return match.replace(/public\./gi, '').replace(/auth\./gi, '');
       })
+      .replace(/references\s+\S+\(id\)\s+on\s+delete\s+set\s+null/gi, (match) => {
+        return match.replace(/public\./gi, '').replace(/auth\./gi, '');
+      })
       // Convert Postgres INSERT ... ON CONFLICT DO NOTHING to MySQL INSERT IGNORE
       .replace(/^(INSERT\s+INTO\s+)/i, 'INSERT IGNORE INTO ')
       .replace(/\s+ON\s+CONFLICT\s+\([^)]*\)\s+DO\s+NOTHING/gi, '')
       .replace(/\s+ON\s+CONFLICT\s+DO\s+NOTHING/gi, '');
+
+    // Fix foreign keys to app_users(id) - they must be INT since app_users.id is INT
+    mysqlStmt = mysqlStmt.replace(/varchar\(36\)(.*REFERENCES\s+app_users\(id\))/gi, 'INT$1');
+
+    // Remove old app_users and user_login_logs table definitions from Postgres migrations since we hardcode the MySQL version at the top
+    if (mysqlStmt.match(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+app_users/i) || 
+        mysqlStmt.match(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+user_login_logs/i) ||
+        mysqlStmt.match(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+user_sessions/i)) {
+      continue; // Skip these statements entirely, do NOT return
+    }
 
     // Clean up double INSERT IGNORE if already replaced
     mysqlStmt = mysqlStmt.replace(/INSERT\s+IGNORE\s+IGNORE/gi, 'INSERT IGNORE');
