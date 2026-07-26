@@ -154,7 +154,6 @@ ALTER TABLE employees
   ADD COLUMN IF NOT EXISTS md_date date,
   ADD COLUMN IF NOT EXISTS applicant_signature_date date;
 
--- ============ Extend existing projects table (nullable columns only) ============
 ALTER TABLE projects
   ADD COLUMN IF NOT EXISTS code text,
   ADD COLUMN IF NOT EXISTS department text,
@@ -171,7 +170,6 @@ ALTER TABLE projects
   ADD COLUMN IF NOT EXISTS favorite tinyint(1) DEFAULT false,
   ADD COLUMN IF NOT EXISTS updated_at datetime DEFAULT CURRENT_TIMESTAMP;
 
--- ============ project_members ============
 CREATE TABLE IF NOT EXISTS project_members (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   project_id BIGINT REFERENCES projects(id) ON DELETE CASCADE,
@@ -184,7 +182,6 @@ CREATE TABLE IF NOT EXISTS project_members (
   updated_at datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- ============ project_milestones ============
 CREATE TABLE IF NOT EXISTS project_milestones (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   project_id BIGINT REFERENCES projects(id) ON DELETE CASCADE,
@@ -198,7 +195,6 @@ CREATE TABLE IF NOT EXISTS project_milestones (
   updated_at datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- ============ project_task_comments ============
 CREATE TABLE IF NOT EXISTS project_task_comments (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   task_id BIGINT REFERENCES tasks(id) ON DELETE CASCADE,
@@ -207,7 +203,6 @@ CREATE TABLE IF NOT EXISTS project_task_comments (
   created_at datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- ============ project_task_checklists ============
 CREATE TABLE IF NOT EXISTS project_task_checklists (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   task_id BIGINT REFERENCES tasks(id) ON DELETE CASCADE,
@@ -216,7 +211,6 @@ CREATE TABLE IF NOT EXISTS project_task_checklists (
   created_at datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- ============ project_timesheets ============
 CREATE TABLE IF NOT EXISTS project_timesheets (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   project_id BIGINT REFERENCES projects(id) ON DELETE CASCADE,
@@ -233,7 +227,6 @@ CREATE TABLE IF NOT EXISTS project_timesheets (
   updated_at datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- ============ project_documents ============
 CREATE TABLE IF NOT EXISTS project_documents (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   project_id BIGINT REFERENCES projects(id) ON DELETE CASCADE,
@@ -244,7 +237,6 @@ CREATE TABLE IF NOT EXISTS project_documents (
   created_at datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- ============ project_meetings ============
 CREATE TABLE IF NOT EXISTS project_meetings (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   project_id BIGINT REFERENCES projects(id) ON DELETE CASCADE,
@@ -260,7 +252,6 @@ CREATE TABLE IF NOT EXISTS project_meetings (
   updated_at datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- ============ project_budgets ============
 CREATE TABLE IF NOT EXISTS project_budgets (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   project_id BIGINT REFERENCES projects(id) ON DELETE CASCADE,
@@ -273,7 +264,6 @@ CREATE TABLE IF NOT EXISTS project_budgets (
   updated_at datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- ============ project_expenses ============
 CREATE TABLE IF NOT EXISTS project_expenses (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   project_id BIGINT REFERENCES projects(id) ON DELETE CASCADE,
@@ -287,7 +277,6 @@ CREATE TABLE IF NOT EXISTS project_expenses (
   updated_at datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- ============ project_activity_logs ============
 CREATE TABLE IF NOT EXISTS project_activity_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   project_id BIGINT REFERENCES projects(id) ON DELETE CASCADE,
@@ -315,10 +304,6 @@ ALTER TABLE tasks
 
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT '[]';
 
--- Role enum
-DO;
-
--- user_roles
 CREATE TABLE IF NOT EXISTS user_roles (
   id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
   user_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -327,11 +312,6 @@ CREATE TABLE IF NOT EXISTS user_roles (
   UNIQUE (user_id, role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- has_role helper
-CREATE OR REPLACE FUNCTION has_role(_user_id varchar(36), _role app_role)
-RETURNS tinyint(1) LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS;
-
--- app_users
 CREATE TABLE IF NOT EXISTS app_users (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   auth_user_id varchar(36) UNIQUE REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -348,7 +328,6 @@ CREATE TABLE IF NOT EXISTS app_users (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- user_activity_logs
 CREATE TABLE IF NOT EXISTS user_activity_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   auth_user_id varchar(36) REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -363,7 +342,6 @@ CREATE TABLE IF NOT EXISTS user_activity_logs (
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- user_login_logs
 CREATE TABLE IF NOT EXISTS user_login_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   auth_user_id varchar(36) REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -393,8 +371,6 @@ CREATE TABLE IF NOT EXISTS departments (
 
 ALTER TABLE app_users ADD COLUMN IF NOT EXISTS employee_id BIGINT REFERENCES employees(id) ON DELETE SET NULL;
 
-DO;
-
 CREATE TABLE feedback_calls (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   customer_id BIGINT,
@@ -416,7 +392,6 @@ CREATE TABLE feedback_calls (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- INTERNAL NOTICES
 CREATE TABLE internal_notices (
   id varchar(36) NOT NULL DEFAULT gen_random_varchar(36)() PRIMARY KEY,
   sender_id varchar(36) NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -431,7 +406,6 @@ CREATE TABLE internal_notices (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- INTERNAL MESSAGES
 CREATE TABLE internal_messages (
   id varchar(36) NOT NULL DEFAULT gen_random_varchar(36)() PRIMARY KEY,
   thread_id varchar(36) NOT NULL DEFAULT gen_random_varchar(36)(),
@@ -452,14 +426,12 @@ CREATE INDEX idx_internal_messages_recipient ON internal_messages(recipient_id);
 
 CREATE INDEX idx_internal_messages_sender ON internal_messages(sender_id);
 
--- Attachments columns
 ALTER TABLE internal_notices ADD COLUMN IF NOT EXISTS attachments json NOT NULL DEFAULT '[]';
 
 ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS attachments json NOT NULL DEFAULT '[]';
 
 ALTER TABLE internal_messages ADD COLUMN IF NOT EXISTS message_type TEXT NOT NULL DEFAULT 'text';
 
--- Meetings table
 CREATE TABLE meetings (
   id varchar(36) NOT NULL DEFAULT gen_random_varchar(36)() PRIMARY KEY,
   title TEXT NOT NULL,
@@ -480,14 +452,6 @@ CREATE TABLE meetings (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Storage RLS on comm-attachments bucket
-CREATE POLICY "Auth users read comm attachments"
-  ON storage.objects FOR SELECT TO authenticated
-  USING (bucket_id = 'comm-attachments');
-
--- Realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE internal_notices;
-
 ALTER TABLE app_users
   ADD COLUMN IF NOT EXISTS failed_attempts int NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS is_locked tinyint(1) NOT NULL DEFAULT false,
@@ -498,8 +462,6 @@ ALTER TABLE app_users
   ADD COLUMN IF NOT EXISTS pending_otp_hash text,
   ADD COLUMN IF NOT EXISTS pending_otp_ip text,
   ADD COLUMN IF NOT EXISTS pending_otp_expires_at datetime;
-
-DO;
 
 CREATE TABLE system_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
@@ -517,7 +479,7 @@ CREATE TABLE otp_logs (
   auth_user_id varchar(36),
   ip_address TEXT,
   purpose TEXT NOT NULL DEFAULT 'login',
-  status TEXT NOT NULL DEFAULT 'sent', -- sent | verified | failed | expired
+  status TEXT NOT NULL DEFAULT 'sent', 
   message TEXT,
   meta json,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -529,7 +491,7 @@ CREATE TABLE email_logs (
   from_email TEXT,
   subject TEXT,
   category TEXT,
-  status TEXT NOT NULL DEFAULT 'sent', -- sent | failed | queued
+  status TEXT NOT NULL DEFAULT 'sent', 
   provider TEXT,
   error TEXT,
   meta json,
@@ -543,7 +505,6 @@ ALTER TABLE otp_logs REPLICA IDENTITY FULL;
 
 ALTER TABLE email_logs REPLICA IDENTITY FULL;
 
--- 1) leave_types
 CREATE TABLE leave_types (
   id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
   name text NOT NULL UNIQUE,
@@ -557,7 +518,6 @@ CREATE TABLE leave_types (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 2) leave_balances
 CREATE TABLE leave_balances (
   id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
   employee_id varchar(36) NOT NULL,
@@ -574,7 +534,6 @@ CREATE TABLE leave_balances (
 
 CREATE INDEX leave_balances_emp_year_idx ON leave_balances(employee_id, year);
 
--- 3) leave_requests
 CREATE TABLE leave_requests (
   id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
   employee_id varchar(36) NOT NULL,
@@ -602,7 +561,6 @@ CREATE INDEX leave_requests_status_idx ON leave_requests(status);
 
 CREATE INDEX leave_requests_dates_idx ON leave_requests(start_date, end_date);
 
--- 4) holidays
 CREATE TABLE holidays (
   id varchar(36) PRIMARY KEY DEFAULT gen_random_varchar(36)(),
   name text NOT NULL,
@@ -617,7 +575,6 @@ CREATE TABLE holidays (
 
 CREATE INDEX holidays_date_idx ON holidays(holiday_date);
 
--- seed default leave types
 INSERT INTO leave_types (name, code, color, default_days, paid, description) VALUES
   ('Annual Leave', 'AL', '#3b82f6', 14, true, 'Yearly paid vacation'),
   ('Casual Leave', 'CL', '#22c55e', 10, true, 'Short-notice personal leave'),
@@ -629,7 +586,6 @@ INSERT INTO leave_types (name, code, color, default_days, paid, description) VAL
   ('Unpaid Leave', 'UL', '#94a3b8', 0, false, 'Leave without pay')
 ON CONFLICT (name) DO NOTHING;
 
--- seed common Pakistan public holidays (2026)
 INSERT INTO holidays (name, holiday_date, type, recurring) VALUES
   ('Kashmir Day', '2026-02-05', 'public', true),
   ('Pakistan Day', '2026-03-23', 'public', true),

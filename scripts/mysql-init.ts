@@ -43,19 +43,20 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
   const mysqlStatements: string[] = [];
 
   for (let stmt of rawStatements) {
-    stmt = stmt.trim();
+    // Remove inline SQL comments
+    stmt = stmt.replace(/--.*$/gm, '').trim();
     if (!stmt) continue;
 
     // Ignore pg-specific commands and permissions
     if (
-      /^\s*(grant|revoke|alter\s+table\s+\S+\s+enable|create\s+policy|drop\s+policy|alter\s+publication|select\s+cron|create\s+function|create\s+or\s+replace\s+function|drop\s+function|create\s+trigger|drop\s+trigger)/i.test(stmt)
+      /^\s*(grant|revoke|alter\s+table\s+\S+\s+enable|create\s+policy|drop\s+policy|alter\s+publication|select\s+cron|create\s+function|create\s+or\s+replace\s+function|drop\s+function|create\s+trigger|drop\s+trigger|create\s+type|drop\s+type)/i.test(stmt)
     ) {
       continue;
     }
 
     // Skip trigger helper execution/definition statements, and loose BEGIN/END/RETURN NEW left over from triggers
     if (
-      /returns\s+trigger|language\s+plpgsql|execute\s+procedure|return\s+new|return\s+old|^\s*begin\s*$|^\s*end\s*$/i.test(stmt)
+      /returns\s+trigger|language\s+plpgsql|execute\s+procedure|return\s+new|return\s+old|^\s*begin\s*$|^\s*end\s*$|^\s*do\s*$/i.test(stmt)
     ) {
       continue;
     }
