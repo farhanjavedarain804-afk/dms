@@ -569,7 +569,7 @@ CREATE TABLE holidays (
 
 CREATE INDEX holidays_date_idx ON holidays(holiday_date);
 
-INSERT INTO leave_types (name, code, color, default_days, paid, description) VALUES
+INSERT IGNORE INTO leave_types (name, code, color, default_days, paid, description) VALUES
   ('Annual Leave', 'AL', '#3b82f6', 14, true, 'Yearly paid vacation'),
   ('Casual Leave', 'CL', '#22c55e', 10, true, 'Short-notice personal leave'),
   ('Sick Leave', 'SL', '#f97316', 8, true, 'Medical / illness'),
@@ -577,10 +577,9 @@ INSERT INTO leave_types (name, code, color, default_days, paid, description) VAL
   ('Paternity Leave', 'PL', '#8b5cf6', 7, true, 'Paternity leave'),
   ('Hajj Leave', 'HJ', '#14b8a6', 30, false, 'Once-in-service Hajj leave'),
   ('Bereavement', 'BL', '#64748b', 3, true, 'Death in family'),
-  ('Unpaid Leave', 'UL', '#94a3b8', 0, false, 'Leave without pay')
-ON CONFLICT (name) DO NOTHING;
+  ('Unpaid Leave', 'UL', '#94a3b8', 0, false, 'Leave without pay');
 
-INSERT INTO holidays (name, holiday_date, type, recurring) VALUES
+INSERT IGNORE INTO holidays (name, holiday_date, type, recurring) VALUES
   ('Kashmir Day', '2026-02-05', 'public', true),
   ('Pakistan Day', '2026-03-23', 'public', true),
   ('Eid ul-Fitr (Day 1)', '2026-03-20', 'religious', false),
@@ -595,6 +594,5 @@ INSERT INTO holidays (name, holiday_date, type, recurring) VALUES
   ('Independence Day', '2026-08-14', 'public', true),
   ('Eid Milad-un-Nabi', '2026-08-25', 'religious', false),
   ('Iqbal Day', '2026-11-09', 'public', true),
-  ('Quaid-e-Azam Day / Christmas', '2026-12-25', 'public', true)
-ON CONFLICT DO NOTHING;
+  ('Quaid-e-Azam Day / Christmas', '2026-12-25', 'public', true);
 

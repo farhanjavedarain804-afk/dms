@@ -89,7 +89,14 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
       .replace(/without\s+time\s+zone/gi, '')
       .replace(/references\s+\S+\(id\)\s+on\s+delete\s+cascade/gi, (match) => {
         return match.replace(/public\./gi, '').replace(/auth\./gi, '');
-      });
+      })
+      // Convert Postgres INSERT ... ON CONFLICT DO NOTHING to MySQL INSERT IGNORE
+      .replace(/^(INSERT\s+INTO\s+)/i, 'INSERT IGNORE INTO ')
+      .replace(/\s+ON\s+CONFLICT\s+\([^)]*\)\s+DO\s+NOTHING/gi, '')
+      .replace(/\s+ON\s+CONFLICT\s+DO\s+NOTHING/gi, '');
+
+    // Clean up double INSERT IGNORE if already replaced
+    mysqlStmt = mysqlStmt.replace(/INSERT\s+IGNORE\s+IGNORE/gi, 'INSERT IGNORE');
 
     // If it's a create table, make sure ID columns that are primary keys are signed properly if referenced,
     // or just let MySQL defaults handle them.
