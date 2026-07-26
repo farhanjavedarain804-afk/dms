@@ -62,7 +62,7 @@ function PortalMeetings() {
   useEffect(() => {
     refresh();
     if (!user?.id) return;
-    const channel = supabase
+    const channel = db
       .channel(`portal-meetings-${user.id}`)
       .on(
         "postgres_changes",

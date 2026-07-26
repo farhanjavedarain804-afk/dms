@@ -34,7 +34,7 @@ function PortalProjects() {
 
   // Realtime: sync from DMS Project Management the moment anything changes
   useEffect(() => {
-    const channel = supabase
+    const channel = db
       .channel("portal-projects-sync")
       .on("postgres_changes", { event: "*", schema: "public", table: "projects" }, () => {
         qc.invalidateQueries({ queryKey: ["portal", "projects"] });

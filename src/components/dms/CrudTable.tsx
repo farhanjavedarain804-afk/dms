@@ -246,7 +246,7 @@ export function CrudTable<T extends { id: number }>({
                     type="button"
                     className="text-primary underline underline-offset-2 hover:opacity-80"
                     onClick={async () => {
-                      const { data, error } = await (await import("@/lib/db-client")).supabase
+                      const { data, error } = await (await import("@/lib/db-client")).db
                         .storage.from("employee-documents").createSignedUrl(v, 300);
                       if (error) return;
                       window.open(data.signedUrl, "_blank", "noopener,noreferrer");
@@ -262,7 +262,7 @@ export function CrudTable<T extends { id: number }>({
                 const path = idx === -1 ? String(v) : String(v).slice(0, idx);
                 const name = idx === -1 ? path.split("/").pop() ?? path : String(v).slice(idx + 2);
                 const openSigned = async (download?: boolean) => {
-                  const { supabase } = await import("@/lib/db-client");
+                  const { db } = await import("@/lib/db-client");
                   const { data, error } = await db.storage
                     .from("docs-attachments")
                     .createSignedUrl(path, 300, download ? { download: name } : undefined);
