@@ -35,6 +35,9 @@ const connectionConfig = {
 };
 
 function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
+  // Completely strip out PL/pgSQL blocks between $$ ... $$ to avoid splitting fragments
+  pgSql = pgSql.replace(/\$\$[\s\S]*?\$\$/g, '');
+
   // Split statements by semicolon
   const rawStatements = pgSql.split(';');
   const mysqlStatements: string[] = [];
@@ -50,9 +53,9 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
       continue;
     }
 
-    // Skip trigger helper execution/definition statements
+    // Skip trigger helper execution/definition statements, and loose BEGIN/END/RETURN NEW left over from triggers
     if (
-      /returns\s+trigger|language\s+plpgsql|execute\s+procedure/i.test(stmt)
+      /returns\s+trigger|language\s+plpgsql|execute\s+procedure|return\s+new|return\s+old|^\s*begin\s*$|^\s*end\s*$/i.test(stmt)
     ) {
       continue;
     }
@@ -79,11 +82,6 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
       .replace(/references\s+\S+\(id\)\s+on\s+delete\s+cascade/gi, (match) => {
         return match.replace(/public\./gi, '');
       });
-
-    // Make sure we don't carry over any syntax that starts with PL/pgSQL dollar quotes
-    if (mysqlStmt.includes('$$')) {
-      continue;
-    }
 
     // If it's a create table, make sure ID columns that are primary keys are signed properly if referenced,
     // or just let MySQL defaults handle them.

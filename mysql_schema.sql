@@ -171,10 +171,6 @@ ALTER TABLE projects
   ADD COLUMN IF NOT EXISTS favorite tinyint(1) DEFAULT false,
   ADD COLUMN IF NOT EXISTS updated_at datetime DEFAULT CURRENT_TIMESTAMP;
 
-RETURN NEW;
-
-END;
-
 -- ============ project_members ============
 CREATE TABLE IF NOT EXISTS project_members (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
@@ -321,7 +317,8 @@ DROP TRIGGER IF EXISTS tasks_touch_updated_at ON tasks;
 
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT '[]'::json;
 
-EXCEPTION WHEN duplicate_object THEN NULL;
+-- Role enum
+DO;
 
 -- user_roles
 CREATE TABLE IF NOT EXISTS user_roles (
@@ -333,6 +330,10 @@ CREATE TABLE IF NOT EXISTS user_roles (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 DROP POLICY IF EXISTS "roles_read_all_auth" ON user_roles;
+
+-- has_role helper
+CREATE OR REPLACE FUNCTION has_role(_user_id varchar(36), _role app_role)
+RETURNS tinyint(1) LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS;
 
 -- app_users
 CREATE TABLE IF NOT EXISTS app_users (
@@ -358,10 +359,6 @@ DROP POLICY IF EXISTS "app_users_self_update" ON app_users;
 DROP POLICY IF EXISTS "app_users_admin_write" ON app_users;
 
 DROP POLICY IF EXISTS "app_users_admin_delete" ON app_users;
-
-RETURN NEW;
-
-END;
 
 DROP TRIGGER IF EXISTS app_users_touch ON app_users;
 
@@ -426,17 +423,9 @@ DROP TRIGGER IF EXISTS trg_departments_updated ON departments;
 
 ALTER TABLE app_users ADD COLUMN IF NOT EXISTS employee_id BIGINT REFERENCES employees(id) ON DELETE SET NULL;
 
-END IF;
-
-RETURN NEW;
-
-END;
+DO;
 
 DROP TRIGGER IF EXISTS trg_sync_app_user_from_employee ON employees;
-
-RETURN OLD;
-
-END;
 
 DROP TRIGGER IF EXISTS trg_deactivate_app_user_on_employee_delete ON employees;
 
@@ -544,29 +533,7 @@ ALTER TABLE app_users
   ADD COLUMN IF NOT EXISTS pending_otp_ip text,
   ADD COLUMN IF NOT EXISTS pending_otp_expires_at datetime;
 
-DECLARE tables json := ARRAY[
-  'employees','attendance','tasks','projects','project_members','project_milestones',
-  'project_task_checklists','project_task_comments','project_timesheets','project_expenses',
-  'project_budgets','project_documents','project_meetings','project_activity_logs',
-  'app_users','user_roles','user_activity_logs','user_login_logs',
-  'internal_messages','internal_notices','meetings','feedback_calls',
-  'departments'
-];
-
-BEGIN
-  FOREACH t IN ARRAY tables LOOP
-    BEGIN
-      EXECUTE format('ALTER TABLE %I REPLICA IDENTITY FULL', t);
-
-EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE %I', t);
-
-EXCEPTION WHEN duplicate_object THEN NULL;
-
-WHEN undefined_table THEN NULL;
-
-END;
-
-END LOOP;
+DO;
 
 CREATE TABLE system_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
@@ -683,10 +650,6 @@ CREATE TABLE holidays (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE INDEX holidays_date_idx ON holidays(holiday_date);
-
-RETURN NEW;
-
-END;
 
 -- seed default leave types
 INSERT INTO leave_types (name, code, color, default_days, paid, description) VALUES
