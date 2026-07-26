@@ -313,8 +313,6 @@ ALTER TABLE tasks
   ADD COLUMN IF NOT EXISTS completed_at datetime,
   ADD COLUMN IF NOT EXISTS updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
-DROP TRIGGER IF EXISTS tasks_touch_updated_at ON tasks;
-
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status_history json NOT NULL DEFAULT '[]';
 
 -- Role enum
@@ -328,8 +326,6 @@ CREATE TABLE IF NOT EXISTS user_roles (
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (user_id, role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-DROP POLICY IF EXISTS "roles_read_all_auth" ON user_roles;
 
 -- has_role helper
 CREATE OR REPLACE FUNCTION has_role(_user_id varchar(36), _role app_role)
@@ -352,16 +348,6 @@ CREATE TABLE IF NOT EXISTS app_users (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-DROP POLICY IF EXISTS "app_users_read" ON app_users;
-
-DROP POLICY IF EXISTS "app_users_self_update" ON app_users;
-
-DROP POLICY IF EXISTS "app_users_admin_write" ON app_users;
-
-DROP POLICY IF EXISTS "app_users_admin_delete" ON app_users;
-
-DROP TRIGGER IF EXISTS app_users_touch ON app_users;
-
 -- user_activity_logs
 CREATE TABLE IF NOT EXISTS user_activity_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
@@ -376,10 +362,6 @@ CREATE TABLE IF NOT EXISTS user_activity_logs (
   user_agent TEXT,
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-DROP POLICY IF EXISTS "activity_read" ON user_activity_logs;
-
-DROP POLICY IF EXISTS "activity_insert_self" ON user_activity_logs;
 
 -- user_login_logs
 CREATE TABLE IF NOT EXISTS user_login_logs (
@@ -401,12 +383,6 @@ CREATE TABLE IF NOT EXISTS user_login_logs (
   duration_seconds BIGINT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-DROP POLICY IF EXISTS "login_logs_read" ON user_login_logs;
-
-DROP POLICY IF EXISTS "login_logs_insert_self" ON user_login_logs;
-
-DROP POLICY IF EXISTS "login_logs_update_self" ON user_login_logs;
-
 CREATE TABLE IF NOT EXISTS departments (
   id BIGint AUTO_INCREMENT PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
@@ -415,19 +391,9 @@ CREATE TABLE IF NOT EXISTS departments (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-DROP POLICY IF EXISTS "Authenticated read departments" ON departments;
-
-DROP POLICY IF EXISTS "Admins manage departments" ON departments;
-
-DROP TRIGGER IF EXISTS trg_departments_updated ON departments;
-
 ALTER TABLE app_users ADD COLUMN IF NOT EXISTS employee_id BIGINT REFERENCES employees(id) ON DELETE SET NULL;
 
 DO;
-
-DROP TRIGGER IF EXISTS trg_sync_app_user_from_employee ON employees;
-
-DROP TRIGGER IF EXISTS trg_deactivate_app_user_on_employee_delete ON employees;
 
 CREATE TABLE feedback_calls (
   id BIGint AUTO_INCREMENT PRIMARY KEY,

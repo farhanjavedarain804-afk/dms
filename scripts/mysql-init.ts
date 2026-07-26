@@ -48,7 +48,7 @@ function cleanAndConvertPostgresToMysql(pgSql: string): string[] {
 
     // Ignore pg-specific commands and permissions
     if (
-      /^\s*(grant|revoke|alter\s+table\s+\S+\s+enable|create\s+policy|alter\s+publication|select\s+cron|create\s+function|create\s+or\s+replace\s+function|create\s+trigger)/i.test(stmt)
+      /^\s*(grant|revoke|alter\s+table\s+\S+\s+enable|create\s+policy|drop\s+policy|alter\s+publication|select\s+cron|create\s+function|create\s+or\s+replace\s+function|drop\s+function|create\s+trigger|drop\s+trigger)/i.test(stmt)
     ) {
       continue;
     }
