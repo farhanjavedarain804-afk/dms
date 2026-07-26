@@ -9,7 +9,6 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "start": "node .output/server/server.js",
-    "postbuild": "node -e \"const fs=require('fs');if(!fs.existsSync('.output/server'))fs.mkdirSync('.output/server',{recursive:true});if(fs.existsSync('dist/server/server.js')){fs.cpSync('dist/server','.output/server',{recursive:true});console.log('Copied dist/server to .output/server')}\"",
     "db:init": "tsx scripts/mysql-init.ts",
     "lint": "eslint .",
     "format": "prettier --write ."
