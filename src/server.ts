@@ -1,5 +1,5 @@
 import "./lib/error-capture";
-
+import { createServer } from "node:http";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
@@ -18,8 +18,6 @@ async function getServerEntry(): Promise<ServerEntry> {
   return serverEntryPromise;
 }
 
-// h3 swallows in-handler throws into a normal 500 Response with body
-// {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
 async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
   if (response.status < 500) return response;
   const contentType = response.headers.get("content-type") ?? "";
@@ -44,11 +42,11 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
-export default {
+const handler = {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
-      const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
+      const serverEntry = await getServerEntry();
+      const response = await serverEntry.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
       console.error(error);
@@ -59,3 +57,58 @@ export default {
     }
   },
 };
+
+// Start a real HTTP server in production environments (like Hostinger)
+// Start unless we are explicitly in local dev mode
+if (process.env.NODE_ENV !== "development") {
+  const PORT = Number(process.env.PORT ?? 3000);
+  const HOST = process.env.HOST ?? "0.0.0.0";
+
+  const server = createServer(async (nodeReq, nodeRes) => {
+    try {
+      const protocol = "http";
+      const host = nodeReq.headers.host ?? `${HOST}:${PORT}`;
+      const url = `${protocol}://${host}${nodeReq.url ?? "/"}`;
+
+      let body: Buffer | null = null;
+      if (nodeReq.method !== "GET" && nodeReq.method !== "HEAD") {
+        const chunks: Buffer[] = [];
+        for await (const chunk of nodeReq) {
+          chunks.push(chunk as Buffer);
+        }
+        body = Buffer.concat(chunks);
+      }
+
+      const request = new Request(url, {
+        method: nodeReq.method ?? "GET",
+        headers: nodeReq.headers as HeadersInit,
+        body,
+      });
+
+      const response = await handler.fetch(request, {}, {});
+
+      nodeRes.writeHead(response.status, Object.fromEntries(response.headers.entries()));
+
+      if (response.body) {
+        const reader = response.body.getReader();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          nodeRes.write(value);
+        }
+      }
+      nodeRes.end();
+    } catch (error) {
+      console.error(error);
+      const html = renderErrorPage();
+      nodeRes.writeHead(500, { "content-type": "text/html; charset=utf-8" });
+      nodeRes.end(html);
+    }
+  });
+
+  server.listen(PORT, HOST, () => {
+    console.log(`Server running at http://${HOST}:${PORT}`);
+  });
+}
+
+export default handler;

@@ -8,7 +8,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
-    "start": "node .output/server/server.js",
+    "start": "NODE_ENV=production node .output/server/server.js",
     "postbuild": "node -e \"require('fs').writeFileSync('.output/package.json', JSON.stringify({type: 'module'}))\"",
     "db:init": "tsx scripts/mysql-init.ts",
     "lint": "eslint .",
