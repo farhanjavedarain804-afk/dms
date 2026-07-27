@@ -3,7 +3,7 @@ export const COMPANY = {
   name: "Devionic (Private) Limited",
   short_name: "Devionic",
   tagline: "Software • ERP • Cloud Solutions",
-  address: "Head Office Devionic, Multan Road, Chowk Azam, Tehsil & District Layyah, Punjab, Pakistan — Postal Code 31450",
+  address: "Head Office, Multan Road Chowk Azam, Tehsil & District Layyah, Punjab, Pakistan — 31450",
   phone: "+92-317-7121841",
   email: "info@devionic.com",
   website: "www.devionic.com",

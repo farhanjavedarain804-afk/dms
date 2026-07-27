@@ -320,7 +320,7 @@ function LoginPage() {
           <div className="relative flex items-center justify-between text-[11px] text-white/70">
             <div className="flex items-center gap-2">
               <Globe className="h-3.5 w-3.5" />
-              <span className="tracking-[0.25em]">DEVIONIC (PVT) LTD</span>
+              <span className="tracking-[0.25em]">DEVIONIC (PRIVATE) LIMITED</span>
             </div>
             <span>© {new Date().getFullYear()} All rights reserved</span>
           </div>
@@ -548,12 +548,15 @@ function LoginPage() {
                 Ask your workspace administrator
               </span>
             </p>
+            <p className="mt-3 text-center text-[11px] text-muted-foreground/60 tracking-wider uppercase font-medium">
+              Developed & Managed by Devionic (Private) Limited
+            </p>
           </div>
         </div>
       </div>
 
-      <p className="relative mt-6 text-[11px] text-muted-foreground text-center px-4">
-        Devionic (Private) Limited · Head Office, Multan Road, Chowk Azam, Tehsil &amp; District Layyah, Punjab, Pakistan — 31450<br />
+      <p className="relative mt-6 text-sm text-muted-foreground text-center px-4">
+        Devionic (Private) Limited · Head Office, Multan Road Chowk Azam, Tehsil &amp; District Layyah, Punjab, Pakistan — 31450<br />
         +92-317-7121841 ·{" "}
         <a href="https://www.devionic.com" className="hover:text-foreground transition">www.devionic.com</a> ·{" "}
         <a href="mailto:info@devionic.com" className="hover:text-foreground transition">info@devionic.com</a> · NTN H534200 · SECP CUIN 0308965
