@@ -10,15 +10,16 @@ const OUT = join(ROOT, '.output', 'server', 'node_modules');
 
 const PACKAGES = [
   'mysql2',
+  'aws-ssl-profiles',
+  'denque',
+  'generate-function',
+  'iconv-lite',
+  'long',
+  'lru.min',
   'lru-cache',
   'named-placeholders',
   'seq-queue',
-  'generate-function',
-  'iconv-lite',
-  'denque',
-  'long',
-  'cardinal',
-  'redeyed',
+  'sql-escaper',
   'sqlstring',
 ];
 
