@@ -160,7 +160,7 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground h-screen sticky top-0">
       <div className="px-5 py-5 border-b border-sidebar-border">
-        <img src={logo} alt="Devionic" className="h-9 w-auto " />
+        <img src={logo} alt="Devionic" className="h-9 w-auto brightness-0 invert" />
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-3">
         {sections.map((section, si) => (
