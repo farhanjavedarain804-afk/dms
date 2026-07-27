@@ -3,7 +3,7 @@ import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { COMPANY } from "@/lib/company";
 import { fmtPKR } from "@/lib/pk";
-import devionicLogoAsset from "@/assets/devionic-logo.png.asset.json";
+const devionicLogoAsset = "/devionic-logo.png";
 
 const NAVY: [number, number, number] = [15, 27, 61];
 const TEAL: [number, number, number] = [20, 184, 166];

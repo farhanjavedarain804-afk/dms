@@ -2,7 +2,7 @@
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { COMPANY } from "@/lib/company";
-import devionicLogoAsset from "@/assets/devionic-logo.png.asset.json";
+const devionicLogoAsset = "/devionic-logo.png";
 
 export type InternPdfData = {
   id?: string;

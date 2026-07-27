@@ -1,7 +1,7 @@
 // POS-style thermal receipt (80mm wide) — clean, minimal, Devionic-branded.
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
-import logoAsset from "@/assets/devionic-logo.png.asset.json";
+const logoAsset = "/devionic-logo.png";
 import { COMPANY } from "@/lib/company";
 import { fmtPKR } from "@/lib/pk";
 

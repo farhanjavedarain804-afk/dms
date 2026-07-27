@@ -3,7 +3,7 @@ import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { COMPANY } from "@/lib/company";
 import { fmtPKR } from "@/lib/pk";
-import devionicLogoAsset from "@/assets/devionic-logo.png.asset.json";
+const devionicLogoAsset = "/devionic-logo.png";
 
 let _logoCache: string | null = null;
 async function getLogoDataUrl(): Promise<string | null> {

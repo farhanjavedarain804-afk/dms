@@ -2,7 +2,7 @@
 import jsPDF from "jspdf";
 import { COMPANY } from "@/lib/company";
 import { fmtPKR } from "@/lib/pk";
-import devionicLogoAsset from "@/assets/devionic-logo.png.asset.json";
+const devionicLogoAsset = "/devionic-logo.png";
 
 let _logo: string | null = null;
 async function logoDataUrl(): Promise<string | null> {

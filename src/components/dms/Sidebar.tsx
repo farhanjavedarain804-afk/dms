@@ -13,7 +13,7 @@ import {
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useState, useMemo, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import logo from "@/assets/devionic-logo.png.asset.json";
+const logo = "/devionic-logo.png";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 

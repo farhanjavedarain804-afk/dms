@@ -7,7 +7,7 @@ import QRCode from "qrcode";
 import { COMPANY } from "@/lib/company";
 import { PK_PROVINCES } from "@/lib/pk";
 import { db } from "@/lib/db-client";
-import devionicLogoAsset from "@/assets/devionic-logo.png.asset.json";
+const devionicLogoAsset = "/devionic-logo.png";
 import type { Employee } from "@/lib/api";
 
 // ---------------- Devionic palette (mapped to template's green/pink roles) ----------------

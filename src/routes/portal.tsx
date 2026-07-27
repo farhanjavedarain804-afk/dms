@@ -24,7 +24,7 @@ import { RequirePortalAuth, usePortalIdentity } from "@/lib/portal-auth";
 import { useAuth } from "@/lib/auth";
 import { COMPANY } from "@/lib/company";
 import { KEYS, readList, type PortalNotification, startPortalSession, heartbeatPortalSession, endPortalSession } from "@/lib/portal-data";
-import devionicLogo from "@/assets/devionic-logo.png.asset.json";
+const devionicLogo = "/devionic-logo.png";
 
 export const Route = createFileRoute("/portal")({
   head: () => ({

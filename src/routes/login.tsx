@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/devionic-logo.png.asset.json";
+const logo = "/devionic-logo.png";
 
 const seedAdmin = () => import("@/lib/seed-admin.functions");
 const loginSecurity = () => import("@/lib/login-security.functions");
