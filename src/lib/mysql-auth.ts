@@ -69,6 +69,24 @@ export async function ensureAuthTables(): Promise<void> {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
 
+    // ── Seed Super Admin ─────────────────────────────────────────────────────
+    // Always ensure the Super Admin account exists with the correct credentials.
+    const ADMIN_EMAIL    = 'farhanjaved357@gmail.com';
+    const ADMIN_NAME     = 'Farhan Javed';
+    const ADMIN_ROLE     = 'Super Admin';
+    const ADMIN_SALT     = 'ef512adf7873c46e2adead1906d32d18c771aa424aa582732caa751fed9db4ce';
+    const ADMIN_HASH     = '0718988050a856e7b8ec9bf0aa982e6e3807e261391f848b406b6fc4a77d2e3f';
+
+    await execute(`
+      INSERT INTO app_users (email, name, role, password_hash, salt, is_active)
+      VALUES (?, ?, ?, ?, ?, 1)
+      ON DUPLICATE KEY UPDATE
+        password_hash = VALUES(password_hash),
+        salt          = VALUES(salt),
+        role          = VALUES(role),
+        is_active     = 1
+    `, [ADMIN_EMAIL, ADMIN_NAME, ADMIN_ROLE, ADMIN_HASH, ADMIN_SALT]);
+
     authTablesEnsured = true;
   } catch (err) {
     // Log but don't crash the app - pages will show a proper error if DB is unreachable
