@@ -285,7 +285,7 @@ function LoginPage() {
               DIGITAL MANAGEMENT SYSTEM
             </span>
             <h2 className="mt-5 text-4xl sm:text-5xl font-bold leading-[1.05]">
-              Run your entire company from{" "}
+              Run & Manage entire company from{" "}
               <span
                 className="bg-clip-text text-transparent"
                 style={{
