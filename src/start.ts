@@ -11,8 +11,10 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
     if (error != null && typeof error === "object" && "statusCode" in error) {
       throw error;
     }
-    console.error(error);
-    return new Response(renderErrorPage(), {
+    const msg = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack ?? '' : '';
+    console.error('[start.ts requestMiddleware]', msg, stack);
+    return new Response(renderErrorPage(msg, stack), {
       status: 500,
       headers: { "content-type": "text/html; charset=utf-8" },
     });
