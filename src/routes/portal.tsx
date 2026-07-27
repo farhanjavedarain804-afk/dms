@@ -123,7 +123,7 @@ function PortalShell() {
         }`}
       >
         <div className="h-16 flex items-center gap-3 px-5 border-b">
-          <img src={devionicLogo.url} alt="Devionic" className="h-9 w-auto object-contain" />
+          <img src={devioniclogo} alt="Devionic" className="h-9 w-auto object-contain" />
           <button
             onClick={() => setMobileOpen(false)}
             className="md:hidden ml-auto h-8 w-8 grid place-items-center rounded-md hover:bg-accent"

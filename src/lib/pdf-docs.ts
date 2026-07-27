@@ -9,7 +9,7 @@ let _logoCache: string | null = null;
 async function getLogoDataUrl(): Promise<string | null> {
   if (_logoCache) return _logoCache;
   try {
-    const res = await fetch(devionicLogoAsset.url);
+    const res = await fetch(devionicLogoAsset);
     const blob = await res.blob();
     const dataUrl: string = await new Promise((resolve, reject) => {
       const r = new FileReader();

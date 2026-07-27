@@ -17,7 +17,7 @@ let _logoCache: string | null = null;
 async function getLogo(): Promise<string | null> {
   if (_logoCache) return _logoCache;
   try {
-    const res = await fetch(devionicLogoAsset.url); const blob = await res.blob();
+    const res = await fetch(devionicLogoAsset); const blob = await res.blob();
     _logoCache = await new Promise((r, j) => { const f = new FileReader(); f.onload = () => r(f.result as string); f.onerror = j; f.readAsDataURL(blob); });
     return _logoCache;
   } catch { return null; }
@@ -26,7 +26,7 @@ let _sealCache: string | null = null;
 async function getSeal(): Promise<string | null> {
   if (_sealCache) return _sealCache;
   try {
-    const res = await fetch(devionicSealAsset.url); const blob = await res.blob();
+    const res = await fetch(devionicSealAsset); const blob = await res.blob();
     _sealCache = await new Promise((r, j) => { const f = new FileReader(); f.onload = () => r(f.result as string); f.onerror = j; f.readAsDataURL(blob); });
     return _sealCache;
   } catch { return null; }

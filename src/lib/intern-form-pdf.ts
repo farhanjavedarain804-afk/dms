@@ -44,7 +44,7 @@ let _logoCache: string | null = null;
 async function getLogo(): Promise<string | null> {
   if (_logoCache) return _logoCache;
   try {
-    const res = await fetch(devionicLogoAsset.url);
+    const res = await fetch(devionicLogoAsset);
     const blob = await res.blob();
     _logoCache = await new Promise((r, j) => { const f = new FileReader(); f.onload = () => r(f.result as string); f.onerror = j; f.readAsDataURL(blob); });
     return _logoCache;

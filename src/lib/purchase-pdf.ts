@@ -8,7 +8,7 @@ let _logo: string | null = null;
 async function logoDataUrl(): Promise<string | null> {
   if (_logo) return _logo;
   try {
-    const r = await fetch(devionicLogoAsset.url);
+    const r = await fetch(devionicLogoAsset);
     const b = await r.blob();
     const u: string = await new Promise((res, rej) => {
       const fr = new FileReader(); fr.onload = () => res(fr.result as string); fr.onerror = rej; fr.readAsDataURL(b);

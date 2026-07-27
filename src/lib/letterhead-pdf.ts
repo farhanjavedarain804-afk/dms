@@ -22,7 +22,7 @@ let _bgCache: string | null = null;
 async function getLetterheadDataUrl(): Promise<string | null> {
   if (_bgCache) return _bgCache;
   try {
-    const res = await fetch(letterheadAsset.url);
+    const res = await fetch(letterheadAsset);
     const blob = await res.blob();
     const dataUrl: string = await new Promise((resolve, reject) => {
       const r = new FileReader();

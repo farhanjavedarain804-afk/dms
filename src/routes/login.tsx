@@ -263,9 +263,9 @@ function LoginPage() {
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img
-                src={logo.url}
+                src={logo}
                 alt="Devionic"
-                className="h-10 w-auto brightness-0 invert"
+                className="h-10 w-auto "
               />
               <div className="hidden sm:block h-8 w-px bg-white/30" />
               <span className="hidden sm:inline text-[11px] tracking-[0.35em] text-white/80">
