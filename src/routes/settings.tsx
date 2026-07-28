@@ -576,11 +576,6 @@ function SettingsPage() {
     } finally { setImporting(false); }
   }
 
-  const saveSecurity = () => {
-    localStorage.setItem(SECURITY_KEY, JSON.stringify(security));
-    toast.success("Security settings updated");
-  };
-
   const saveLoginPin = async () => {
     if (!user) return;
     if (loginPin.length !== 4) {
@@ -604,7 +599,8 @@ function SettingsPage() {
     localStorage.setItem(NOTIF_KEY, JSON.stringify(notif));
     localStorage.setItem(COMPANY_KEY, JSON.stringify(company));
     localStorage.setItem(SYSTEM_KEY, JSON.stringify(system));
-    saveSecurity();
+    saveSecurity(security);
+    toast.success("Settings saved");
   }
   function resetAll() {
     if (!confirm("Reset preferences to defaults? This will not sign you out.")) return;
