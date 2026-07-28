@@ -92,7 +92,7 @@ function PortalLoginPage() {
         if (userId) {
           setGenerating(true);
           try {
-            const res = await $generateClientSecurityKey({ userId });
+            const res = await $generateClientSecurityKey({ data: { userId } });
             setGeneratedKey(res.key);
           } finally {
             setGenerating(false);
@@ -146,7 +146,7 @@ function PortalLoginPage() {
     setVerifying(true);
     setError(null);
     try {
-      const res = await $verifyClientSecurityKey({ userId: loggedUserId, key: securityKeyInput.trim() });
+      const res = await $verifyClientSecurityKey({ data: { userId: loggedUserId, key: securityKeyInput.trim() } });
       if (res.valid) {
         if (keepSigned) {
           localStorage.setItem(TRUST_KEY(email.trim()), "1");

@@ -589,7 +589,7 @@ function SettingsPage() {
     }
     setSavingPin(true);
     try {
-      await $setLoginPin({ userId, pin: loginPin });
+      await $setLoginPin({ data: { userId, pin: loginPin } });
       toast.success("Login PIN updated successfully. You can now use it instead of your password.");
       setLoginPinState("");
     } catch (e: any) {
