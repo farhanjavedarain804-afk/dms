@@ -15,7 +15,7 @@ export type AuthUser = {
 type AuthContextValue = {
   user: AuthUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ user: { id: number; email: string; name: string; role: string }; token: string; has_client_key: boolean }>;
   logout: () => Promise<void>;
 };
 
@@ -83,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     await recordLogin(email);
     startHeartbeat();
+    return session as unknown as { user: { id: number; email: string; name: string; role: string }; token: string; has_client_key: boolean };
   }, []);
 
   const logout = useCallback(async () => {

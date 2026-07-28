@@ -7,7 +7,7 @@
 
 import { createServerFn } from '@tanstack/react-start';
 import { db, rpc } from '@/lib/db';
-import { signIn, signOut, getSession, ensureAuthTables, createUser, listUsers, getUserById } from '@/lib/mysql-auth';
+import { signIn, signOut, getSession, ensureAuthTables, createUser, listUsers, getUserById, setLoginPin, generateClientSecurityKey, verifyClientSecurityKey } from '@/lib/mysql-auth';
 
 // ── Auth server functions ─────────────────────────────────────────────────────
 
@@ -68,6 +68,44 @@ export const $getUserById = createServerFn({ method: 'GET' })
   .validator((data: { id: number }) => data)
   .handler(async ({ data }) => {
     return getUserById(data.id);
+  });
+
+export const $setLoginPin = createServerFn({ method: 'POST' })
+  .validator((data: { userId: number; pin: string }) => data)
+  .handler(async ({ data }) => {
+    try {
+      await ensureAuthTables();
+      await setLoginPin(data.userId, data.pin);
+      return { ok: true };
+    } catch (err: any) {
+      console.error('[setLoginPin] Error:', err?.message ?? err);
+      throw new Error(err?.message ?? 'Failed to set login PIN.');
+    }
+  });
+
+export const $generateClientSecurityKey = createServerFn({ method: 'POST' })
+  .validator((data: { userId: number }) => data)
+  .handler(async ({ data }) => {
+    try {
+      await ensureAuthTables();
+      const rawKey = await generateClientSecurityKey(data.userId);
+      return { key: rawKey };
+    } catch (err: any) {
+      console.error('[generateClientSecurityKey] Error:', err?.message ?? err);
+      throw new Error(err?.message ?? 'Failed to generate security key.');
+    }
+  });
+
+export const $verifyClientSecurityKey = createServerFn({ method: 'POST' })
+  .validator((data: { userId: number; key: string }) => data)
+  .handler(async ({ data }) => {
+    try {
+      const valid = await verifyClientSecurityKey(data.userId, data.key);
+      return { valid };
+    } catch (err: any) {
+      console.error('[verifyClientSecurityKey] Error:', err?.message ?? err);
+      return { valid: false };
+    }
   });
 
 // ── Generic CRUD server functions ─────────────────────────────────────────────

@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { ACCENTS, ACCENT_LABEL, applyAccent, type AccentKey } from "@/lib/accent";
 import { sendEmailViaConfig } from "@/lib/email-config.functions";
 import { useServerFn } from "@tanstack/react-start";
+import { $setLoginPin } from "@/lib/mysql-api";
 import {
   generateConfigKey, loadStoredConfig, saveStoredConfig, clearStoredConfig,
   decodeConfigKey, saveAppliedConfig, loadAppliedConfig, setupUrlFor,
@@ -251,6 +252,8 @@ function SettingsPage() {
   const [pwd1, setPwd1] = useState("");
   const [pwd2, setPwd2] = useState("");
   const [savingPwd, setSavingPwd] = useState(false);
+  const [loginPin, setLoginPinState] = useState("");
+  const [savingPin, setSavingPin] = useState(false);
   const [copied, setCopied] = useState<string>("");
   const [email, setEmail] = useState<EmailCfg>(DEFAULT_EMAIL);
   const [showKey, setShowKey] = useState(false);
@@ -573,13 +576,35 @@ function SettingsPage() {
     } finally { setImporting(false); }
   }
 
+  const saveSecurity = () => {
+    localStorage.setItem(SECURITY_KEY, JSON.stringify(security));
+    toast.success("Security settings updated");
+  };
+
+  const saveLoginPin = async () => {
+    if (!user) return;
+    if (loginPin.length !== 4) {
+      toast.error("PIN must be exactly 4 characters.");
+      return;
+    }
+    setSavingPin(true);
+    try {
+      await $setLoginPin({ userId: user.id, pin: loginPin });
+      toast.success("Login PIN updated successfully. You can now use it instead of your password.");
+      setLoginPinState("");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to set PIN");
+    } finally {
+      setSavingPin(false);
+    }
+  };
+
   function saveAll() {
     localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
     localStorage.setItem(NOTIF_KEY, JSON.stringify(notif));
     localStorage.setItem(COMPANY_KEY, JSON.stringify(company));
     localStorage.setItem(SYSTEM_KEY, JSON.stringify(system));
-    localStorage.setItem(SECURITY_KEY, JSON.stringify(security));
-    toast.success("Settings saved");
+    saveSecurity();
   }
   function resetAll() {
     if (!confirm("Reset preferences to defaults? This will not sign you out.")) return;
@@ -1130,6 +1155,19 @@ function SettingsPage() {
             <div className="flex justify-end mt-3">
               <Button onClick={changePassword} disabled={savingPwd || !pwd1} className="gap-1">
                 <KeyRound className="h-4 w-4" /> {savingPwd ? "Updating…" : "Update password"}
+              </Button>
+            </div>
+          </Section>
+
+          <Section icon={<Fingerprint className="h-4 w-4" />} title="Login PIN" description="Set a 4-character PIN (letters, numbers, symbols) to use instead of your password on the login screen.">
+            <div className="grid md:grid-cols-2 gap-4">
+              <Field label="New 4-character PIN">
+                <Input type="password" value={loginPin} onChange={(e) => setLoginPinState(e.target.value)} maxLength={4} placeholder="••••" />
+              </Field>
+            </div>
+            <div className="flex justify-end mt-3">
+              <Button onClick={saveLoginPin} disabled={savingPin || loginPin.length !== 4} className="gap-1">
+                <Save className="h-4 w-4" /> {savingPin ? "Saving…" : "Save PIN"}
               </Button>
             </div>
           </Section>

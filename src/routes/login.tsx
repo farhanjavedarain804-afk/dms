@@ -13,8 +13,10 @@ import {
   CheckCircle2,
   Globe,
   KeyRound,
+  RefreshCcw,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useMathCaptcha } from "@/lib/portal-auth";
 import { Button } from "@/components/ui/button";
 const logo = "/devionic-logo.png";
 
@@ -74,6 +76,8 @@ function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const captcha = useMathCaptcha();
+  const [answer, setAnswer] = useState("");
 
   // IP-verification (OTP) state
   const [otpRequired, setOtpRequired] = useState(false);
@@ -117,6 +121,14 @@ function LoginPage() {
         await ensureAdminSeed();
       } catch {
         /* ignore — user may already exist */
+      }
+
+      if (Number(answer) !== captcha.answer) {
+        setError("Captcha answer is incorrect. Please try again.");
+        captcha.refresh();
+        setAnswer("");
+        setSubmitting(false);
+        return;
       }
 
       const ip = await fetchPublicIp();
@@ -285,7 +297,8 @@ function LoginPage() {
               DIGITAL MANAGEMENT SYSTEM
             </span>
             <h2 className="mt-5 text-4xl sm:text-5xl font-bold leading-[1.05]">
-              Run & Manage entire company from{" "}
+              Run & Manage entire<br />
+              company from one<br />
               <span
                 className="bg-clip-text text-transparent"
                 style={{
@@ -293,12 +306,11 @@ function LoginPage() {
                     "linear-gradient(90deg, oklch(0.95 0.05 90), oklch(0.85 0.15 60))",
                 }}
               >
-                one dashboard.
+                dashboard.
               </span>
             </h2>
             <p className="mt-4 text-sm sm:text-base text-white/85 leading-relaxed">
-              Devionic brings people, projects and performance together —
-              intelligently orchestrated, beautifully simple.
+              Devionic connects people, projects, and performance through intelligent automation — making work faster, smarter, and simpler
             </p>
 
             <ul className="mt-8 space-y-4">
@@ -429,7 +441,7 @@ function LoginPage() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-medium text-foreground/80">
-                    Password
+                    Password / PIN
                   </label>
                   <button
                     type="button"
@@ -465,6 +477,40 @@ function LoginPage() {
                       <Eye className="h-4 w-4" />
                     )}
                   </button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-foreground/80">
+                  Security check
+                </label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 flex items-center gap-3 rounded-xl border border-input bg-muted/40 px-4 py-3 text-sm font-mono h-12">
+                    <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+                    <span className="tracking-wider">{captcha.question}</span>
+                    <button
+                      type="button"
+                      onClick={() => { captcha.refresh(); setAnswer(""); }}
+                      className="ml-auto text-muted-foreground hover:text-foreground"
+                      title="New question"
+                    >
+                      <RefreshCcw className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <input
+                    type="number"
+                    required
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    placeholder="Answer"
+                    className={`w-24 rounded-xl border border-input bg-background text-sm text-center outline-none focus:ring-4 focus:ring-primary/10 h-12 ${
+                      answer 
+                        ? Number(answer) === captcha.answer 
+                          ? "border-green-500 text-green-600 focus:border-green-500 focus:ring-green-500/10" 
+                          : "border-red-500 text-red-600 focus:border-red-500 focus:ring-red-500/10"
+                        : "focus:border-primary"
+                    }`}
+                  />
                 </div>
               </div>
 

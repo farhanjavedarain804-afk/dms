@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS app_users (
   role VARCHAR(100) DEFAULT 'Member',
   password_hash VARCHAR(64) NOT NULL,
   salt VARCHAR(64) NOT NULL,
+  login_pin VARCHAR(64) DEFAULT NULL,
   is_active TINYINT(1) DEFAULT 1,
   last_login DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -429,7 +430,9 @@ ALTER TABLE app_users
   ADD COLUMN IF NOT EXISTS last_login_ip text,
   ADD COLUMN IF NOT EXISTS pending_otp_hash text,
   ADD COLUMN IF NOT EXISTS pending_otp_ip text,
-  ADD COLUMN IF NOT EXISTS pending_otp_expires_at datetime;
+  ADD COLUMN IF NOT EXISTS pending_otp_expires_at datetime,
+  ADD COLUMN IF NOT EXISTS client_security_key VARCHAR(64) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS client_key_trusted_devices json NOT NULL DEFAULT '[]';
 
 CREATE TABLE system_logs (
   id BIGint AUTO_INCREMENT PRIMARY KEY,

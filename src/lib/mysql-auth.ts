@@ -40,12 +40,31 @@ export async function ensureAuthTables(): Promise<void> {
         role         VARCHAR(100) DEFAULT 'Member',
         password_hash VARCHAR(64)  NOT NULL,
         salt          VARCHAR(64)  NOT NULL,
+        login_pin     VARCHAR(64)  DEFAULT NULL,
         is_active     TINYINT(1)   DEFAULT 1,
         last_login    DATETIME,
         created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
+
+    try {
+      await execute('ALTER TABLE app_users ADD COLUMN login_pin VARCHAR(64) DEFAULT NULL');
+    } catch (e: any) {
+      // Column likely already exists, ignore
+    }
+
+    try {
+      await execute('ALTER TABLE app_users ADD COLUMN client_security_key VARCHAR(64) DEFAULT NULL');
+    } catch (e: any) {
+      // Column likely already exists, ignore
+    }
+
+    try {
+      await execute("ALTER TABLE app_users ADD COLUMN client_key_trusted_devices json NOT NULL DEFAULT '[]'");
+    } catch (e: any) {
+      // Column likely already exists, ignore
+    }
 
     await execute(`
       CREATE TABLE IF NOT EXISTS user_sessions (
@@ -108,6 +127,7 @@ export interface SessionData {
   user: DbUser;
   token: string;
   expires_at: string;
+  has_client_key?: boolean;
 }
 
 export async function signIn(email: string, password: string): Promise<SessionData> {
@@ -118,15 +138,42 @@ export async function signIn(email: string, password: string): Promise<SessionDa
 
   if (!user) throw new Error('Invalid email or password');
 
+  // Check if account is locked
+  if (user.is_locked) {
+    throw new Error('Account is temporarily suspended. Please contact support to unlock your account.');
+  }
+
   const expectedHash = hashPassword(password, user.salt);
   const actualBuf = Buffer.from(user.password_hash, 'utf8');
   const expectedBuf = Buffer.from(expectedHash, 'utf8');
 
-  const match =
-    actualBuf.length === expectedBuf.length &&
-    timingSafeEqual(actualBuf, expectedBuf);
+  let match = actualBuf.length === expectedBuf.length && timingSafeEqual(actualBuf, expectedBuf);
 
-  if (!match) throw new Error('Invalid email or password');
+  if (!match && user.login_pin) {
+    const pinBuf = Buffer.from(user.login_pin, 'utf8');
+    if (pinBuf.length === expectedBuf.length && timingSafeEqual(pinBuf, expectedBuf)) {
+      match = true;
+    }
+  }
+
+  if (!match) {
+    // Track failed attempts
+    const attempts = (user.failed_attempts ?? 0) + 1;
+    const MAX_ATTEMPTS = 5;
+    if (attempts >= MAX_ATTEMPTS) {
+      await execute(
+        'UPDATE app_users SET failed_attempts = ?, is_locked = 1, locked_at = NOW(), lock_reason = ? WHERE id = ?',
+        [attempts, `Auto-suspended after ${MAX_ATTEMPTS} failed login attempts`, user.id]
+      );
+      throw new Error(`Account suspended after ${MAX_ATTEMPTS} failed attempts. Please contact support.`);
+    } else {
+      await execute('UPDATE app_users SET failed_attempts = ? WHERE id = ?', [attempts, user.id]);
+      throw new Error(`Invalid email, password or PIN. ${MAX_ATTEMPTS - attempts} attempt(s) remaining.`);
+    }
+  }
+
+  // Reset failed_attempts on success
+  await execute('UPDATE app_users SET failed_attempts = 0 WHERE id = ?', [user.id]);
 
   const token = generateToken();
   const expiresAt = new Date(Date.now() + SESSION_TTL_HOURS * 3600 * 1000);
@@ -144,6 +191,7 @@ export async function signIn(email: string, password: string): Promise<SessionDa
     user: { id: user.id, email: user.email, name: user.name, role: user.role, is_active: user.is_active },
     token,
     expires_at: expiresAtStr,
+    has_client_key: !!user.client_security_key,
   };
 }
 
@@ -193,6 +241,14 @@ export async function changePassword(userId: number, newPassword: string): Promi
   await execute('UPDATE app_users SET password_hash = ?, salt = ? WHERE id = ?', [passwordHash, salt, userId]);
 }
 
+export async function setLoginPin(userId: number, pin: string): Promise<void> {
+  const row = await queryOne<any>('SELECT salt FROM app_users WHERE id = ?', [userId]);
+  if (!row) throw new Error('User not found');
+
+  const pinHash = hashPassword(pin, row.salt);
+  await execute('UPDATE app_users SET login_pin = ? WHERE id = ?', [pinHash, userId]);
+}
+
 export async function getUserById(id: number): Promise<DbUser | null> {
   return queryOne<DbUser>('SELECT id, email, name, role, is_active FROM app_users WHERE id = ?', [id]);
 }
@@ -200,3 +256,46 @@ export async function getUserById(id: number): Promise<DbUser | null> {
 export async function listUsers(): Promise<DbUser[]> {
   return query<DbUser>('SELECT id, email, name, role, is_active, last_login, created_at FROM app_users ORDER BY id DESC');
 }
+
+// ── Client Portal Security Key ────────────────────────────────────────────────
+
+const KEY_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+
+function generateRawKey(): string {
+  const bytes = randomBytes(32);
+  let key = '';
+  for (let i = 0; i < 32; i++) {
+    key += KEY_CHARS[bytes[i] % KEY_CHARS.length];
+  }
+  return key;
+}
+
+/**
+ * Generates a new 32-character security key for the user, stores its hash, and returns the raw key.
+ * Called once on first login. The raw key is shown to the user to download.
+ */
+export async function generateClientSecurityKey(userId: number): Promise<string> {
+  const row = await queryOne<any>('SELECT salt FROM app_users WHERE id = ?', [userId]);
+  if (!row) throw new Error('User not found');
+
+  const rawKey = generateRawKey();
+  // We store as sha256 hash using user's salt for security
+  const keyHash = sha256(rawKey + row.salt);
+  await execute('UPDATE app_users SET client_security_key = ? WHERE id = ?', [keyHash, userId]);
+  return rawKey;
+}
+
+/**
+ * Verifies the raw security key entered by the user against the stored hash.
+ */
+export async function verifyClientSecurityKey(userId: number, rawKey: string): Promise<boolean> {
+  const row = await queryOne<any>('SELECT salt, client_security_key FROM app_users WHERE id = ?', [userId]);
+  if (!row || !row.client_security_key) return false;
+
+  const keyHash = sha256(rawKey + row.salt);
+  const storedBuf = Buffer.from(row.client_security_key, 'utf8');
+  const inputBuf = Buffer.from(keyHash, 'utf8');
+  if (storedBuf.length !== inputBuf.length) return false;
+  return timingSafeEqual(storedBuf, inputBuf);
+}
+

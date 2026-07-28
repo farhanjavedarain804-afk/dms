@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/auth-middleware";
 import { query, queryOne, execute } from "@/lib/mysql";
 import type { EmailConfig } from "./email-config.functions";
 
-const MAX_ATTEMPTS = 3;
+const MAX_ATTEMPTS = 5;
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 function maskEmail(email: string) {
