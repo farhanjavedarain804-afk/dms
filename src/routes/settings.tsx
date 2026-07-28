@@ -578,13 +578,18 @@ function SettingsPage() {
 
   const saveLoginPin = async () => {
     if (!user) return;
+    const userId = Number(user.id);
+    if (!userId || isNaN(userId)) {
+      toast.error("Unable to identify user. Please sign out and sign back in.");
+      return;
+    }
     if (loginPin.length !== 4) {
       toast.error("PIN must be exactly 4 characters.");
       return;
     }
     setSavingPin(true);
     try {
-      await $setLoginPin({ userId: user.id, pin: loginPin });
+      await $setLoginPin({ userId, pin: loginPin });
       toast.success("Login PIN updated successfully. You can now use it instead of your password.");
       setLoginPinState("");
     } catch (e: any) {
