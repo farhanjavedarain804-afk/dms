@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ShoppingBag, CheckCircle2, AlertCircle, Wallet } from "lucide-react";
 import { AppLayout, PageHeader } from "@/components/dms/Layout";
@@ -177,6 +177,9 @@ function SalesPage() {
 }
 
 export const Route = createFileRoute("/sales")({
+  beforeLoad: () => {
+    throw redirect({ to: "/transactions" });
+  },
   head: () => ({ meta: [{ title: "Sales & Invoice History — Devionic DMS" }] }),
   component: SalesPage,
 });

@@ -1,57 +1,42 @@
-// Browser-only local CRUD store, used to make secondary modules fully
-// interactive without adding new database tables. Data persists per browser.
+// Database CRUD proxy - Migrated from LocalStorage to MySQL
+import { $dbList, $dbGet, $dbCreate, $dbUpdate, $dbDelete } from "./mysql-api";
 
 type Row = { id: number };
 
 export function localCrud<T extends Row>(key: string, seed: Omit<T, "id">[] = []) {
-  const storageKey = `dms:${key}`;
-
-  const load = (): T[] => {
-    if (typeof window === "undefined") return [];
-    try {
-      const raw = window.localStorage.getItem(storageKey);
-      if (!raw) {
-        const seeded = seed.map((r, i) => ({ ...r, id: i + 1 })) as T[];
-        window.localStorage.setItem(storageKey, JSON.stringify(seeded));
-        return seeded;
-      }
-      return JSON.parse(raw) as T[];
-    } catch {
-      return [];
-    }
-  };
-
-  const save = (rows: T[]) => {
-    window.localStorage.setItem(storageKey, JSON.stringify(rows));
-  };
-
-  const delay = <R,>(v: R) => new Promise<R>((r) => setTimeout(() => r(v), 120));
+  // We no longer use localStorage or seed data since data is in MySQL.
+  // This wrapper ensures existing code still works without changing the API surface.
 
   return {
-    list: async (): Promise<T[]> => delay(load().sort((a, b) => b.id - a.id)),
+    list: async (): Promise<T[]> => {
+      try {
+        const rows = await $dbList({ data: { table: key, orderBy: 'id', ascending: false } });
+        return (rows || []) as unknown as T[];
+      } catch (err) {
+        console.error(`Error fetching ${key}:`, err);
+        return [];
+      }
+    },
     get: async (id: number): Promise<T> => {
-      const row = load().find((r) => r.id === id);
-      if (!row) throw new Error("Not found");
-      return delay(row);
+      try {
+        const row = await $dbGet({ data: { table: key, id } });
+        if (!row) throw new Error("Not found");
+        return row as unknown as T;
+      } catch (err) {
+        throw new Error("Not found");
+      }
     },
     create: async (body: Omit<T, "id">): Promise<T> => {
-      const rows = load();
-      const id = rows.length ? Math.max(...rows.map((r) => r.id)) + 1 : 1;
-      const row = { ...(body as object), id } as T;
-      save([row, ...rows]);
-      return delay(row);
+      const row = await $dbCreate({ data: { table: key, body: body as Record<string, any> } });
+      return row as unknown as T;
     },
     update: async (id: number, body: Partial<T>): Promise<T> => {
-      const rows = load();
-      const idx = rows.findIndex((r) => r.id === id);
-      if (idx < 0) throw new Error("Not found");
-      rows[idx] = { ...rows[idx], ...body };
-      save(rows);
-      return delay(rows[idx]);
+      const row = await $dbUpdate({ data: { table: key, id, body: body as Record<string, any> } });
+      return row as unknown as T;
     },
     remove: async (id: number) => {
-      save(load().filter((r) => r.id !== id));
-      return delay({ ok: true });
+      await $dbDelete({ data: { table: key, id } });
+      return { ok: true };
     },
   };
 }

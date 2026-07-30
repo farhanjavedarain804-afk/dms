@@ -46,13 +46,17 @@ const sections: NavSection[] = [
       { icon: Truck, label: "Purchase & Vendors", to: "/purchase" },
       { icon: Landmark, label: "Tax & Compliance", to: "/tax" },
 
-      { icon: ShoppingBag, label: "Sales & Invoice History", to: "/sales" },
+      { icon: ShoppingBag, label: "Sales & Invoice History", to: "/transactions" },
       { icon: UsersRound, label: "Clients History", to: "/clients-history" },
       { icon: History, label: "Employee History", to: "/employees-history" },
       { icon: PhoneCall, label: "Feedback Calls", to: "/feedback" },
       { icon: Package, label: "Assets & Inventory", to: "/inventory" },
-      { icon: FileText, label: "Docs & Records", to: "/docs" },
-      { icon: FileSignature, label: "Document Center", to: "/letters" },
+      {
+        icon: FileText, label: "Documents", to: "#", children: [
+          { icon: FileText, label: "Docs & Records", to: "/docs" },
+          { icon: FileSignature, label: "Document Center", to: "/letters" },
+        ]
+      },
       { icon: Award, label: "Certificate Issuance", to: "/certificates" },
       { icon: BadgeCheck, label: "Record Verification", to: "/verification" },
 

@@ -14,6 +14,8 @@ import { resources, type Employee } from "@/lib/api";
 import { PK_PROVINCES, PK_DEPARTMENTS } from "@/lib/pk";
 import { EmployeeCsvImport } from "@/components/dms/EmployeeCsvImport";
 import { toast } from "sonner";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { EmployeesHistoryTab } from "@/components/dms/EmployeesHistoryTab";
 
 const employeeFormPdf = () => import("@/lib/employee-form-pdf");
 const employeeCertificatePdf = () => import("@/lib/employee-certificate-pdf");
@@ -186,6 +188,7 @@ const fields: FieldDef<Employee>[] = [
 ];
 
 function EmployeesPage() {
+  const [activeTab, setActiveTab] = useState("directory");
   const q = useQuery({ queryKey: ["employees"], queryFn: resources.employees.list });
   const rows = q.data ?? [];
   const active = rows.filter((r) => r.status === "active").length;
@@ -258,6 +261,14 @@ function EmployeesPage() {
           />
         }
       />
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-6">
+          <TabsTrigger value="directory">Directory & Records</TabsTrigger>
+          <TabsTrigger value="history">History & 360 View</TabsTrigger>
+        </TabsList>
+        <TabsContent value="directory" className="space-y-6">
+
       <StatsCards loading={q.isLoading} stats={[
         { label: "Total Employees", value: rows.length, hint: "All records", icon: Users },
         { label: "Active", value: active, hint: `${rows.length ? Math.round((active / rows.length) * 100) : 0}% of workforce`, icon: UserCheck },
@@ -443,6 +454,11 @@ function EmployeesPage() {
         </DialogContent>
       </Dialog>
       <ModuleReportsCard module="employees" />
+        </TabsContent>
+        <TabsContent value="history">
+          <EmployeesHistoryTab />
+        </TabsContent>
+      </Tabs>
     </AppLayout>
   );
 }

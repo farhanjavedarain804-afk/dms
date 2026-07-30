@@ -1,0 +1,336 @@
+CREATE TABLE IF NOT EXISTS cases_v1 (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  case_no VARCHAR(50),
+  title VARCHAR(255),
+  client VARCHAR(255),
+  status VARCHAR(50),
+  filed_on DATE,
+  court VARCHAR(255),
+  judge VARCHAR(255),
+  next_hearing DATE,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS clients_v2 (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255),
+  company VARCHAR(255),
+  email VARCHAR(255),
+  phone VARCHAR(50),
+  whatsapp VARCHAR(50),
+  address TEXT,
+  city VARCHAR(100),
+  province VARCHAR(100),
+  ntn VARCHAR(100),
+  strn VARCHAR(100),
+  stage VARCHAR(50),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS invoices (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  invoice_no VARCHAR(50),
+  invoice_date DATE,
+  due_date DATE,
+  client VARCHAR(255),
+  client_ntn VARCHAR(100),
+  client_strn VARCHAR(100),
+  items JSON,
+  subtotal DECIMAL(15,2),
+  discount DECIMAL(15,2),
+  tax_rate DECIMAL(5,2),
+  tax_amount DECIMAL(15,2),
+  total DECIMAL(15,2),
+  amount_paid DECIMAL(15,2),
+  status VARCHAR(50),
+  notes TEXT,
+  terms TEXT,
+  payment_method VARCHAR(50),
+  reference_no VARCHAR(100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS payments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  payment_no VARCHAR(50),
+  invoice_id INT,
+  client VARCHAR(255),
+  amount DECIMAL(15,2),
+  payment_date DATE,
+  payment_method VARCHAR(50),
+  reference VARCHAR(100),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS quotations (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  quote_no VARCHAR(50),
+  quote_date DATE,
+  valid_until DATE,
+  client VARCHAR(255),
+  items JSON,
+  subtotal DECIMAL(15,2),
+  discount DECIMAL(15,2),
+  tax_rate DECIMAL(5,2),
+  tax_amount DECIMAL(15,2),
+  total DECIMAL(15,2),
+  status VARCHAR(50),
+  notes TEXT,
+  terms TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS docs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255),
+  category VARCHAR(100),
+  path VARCHAR(500),
+  size_bytes INT,
+  uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  uploaded_by VARCHAR(100),
+  tags JSON,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS finance_accounts_v1 (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255),
+  kind VARCHAR(50),
+  bank VARCHAR(100),
+  account_no VARCHAR(100),
+  opening_balance DECIMAL(15,2),
+  balance DECIMAL(15,2),
+  status VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS finance_v2 (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  date DATE,
+  type VARCHAR(50),
+  category VARCHAR(100),
+  amount DECIMAL(15,2),
+  account_id INT,
+  to_account_id INT,
+  description TEXT,
+  reference VARCHAR(100),
+  status VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS hr (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  employee_id INT,
+  employee_name VARCHAR(255),
+  month VARCHAR(20),
+  basic_salary DECIMAL(15,2),
+  allowances DECIMAL(15,2),
+  deductions DECIMAL(15,2),
+  net_salary DECIMAL(15,2),
+  status VARCHAR(50),
+  payment_date DATE,
+  payment_method VARCHAR(50),
+  reference VARCHAR(100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS inventory_categories (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255),
+  kind VARCHAR(50),
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS inventory_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  category VARCHAR(255),
+  name VARCHAR(255),
+  description TEXT,
+  unit VARCHAR(50),
+  price DECIMAL(15,2),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS inventory (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  asset_tag VARCHAR(50),
+  name VARCHAR(255),
+  category VARCHAR(100),
+  purchase_date DATE,
+  purchase_cost DECIMAL(15,2),
+  vendor VARCHAR(255),
+  location VARCHAR(100),
+  status VARCHAR(50),
+  assigned_to VARCHAR(100),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS inventory_consumables (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255),
+  category VARCHAR(100),
+  quantity INT,
+  unit VARCHAR(50),
+  unit_cost DECIMAL(15,2),
+  reorder_level INT,
+  location VARCHAR(100),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS inventory_assignments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  asset_id INT,
+  assigned_to VARCHAR(100),
+  assigned_at DATE,
+  returned_at DATE,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS inventory_maintenance (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  asset_id INT,
+  date DATE,
+  type VARCHAR(100),
+  cost DECIMAL(15,2),
+  vendor VARCHAR(255),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS it_v2 (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255),
+  type VARCHAR(100),
+  status VARCHAR(50),
+  vendor VARCHAR(255),
+  renewal_date DATE,
+  cost DECIMAL(15,2),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS purchase_vendors_v1 (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255),
+  contact_person VARCHAR(255),
+  email VARCHAR(255),
+  phone VARCHAR(50),
+  address TEXT,
+  ntn VARCHAR(100),
+  strn VARCHAR(100),
+  category VARCHAR(100),
+  status VARCHAR(50),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS purchase_orders_v1 (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  po_no VARCHAR(50),
+  po_date DATE,
+  vendor_id INT,
+  vendor_name VARCHAR(255),
+  items JSON,
+  subtotal DECIMAL(15,2),
+  tax_amount DECIMAL(15,2),
+  total DECIMAL(15,2),
+  status VARCHAR(50),
+  expected_delivery DATE,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS purchase_grns_v1 (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  grn_no VARCHAR(50),
+  grn_date DATE,
+  po_id INT,
+  po_no VARCHAR(50),
+  vendor_name VARCHAR(255),
+  items JSON,
+  received_by VARCHAR(100),
+  status VARCHAR(50),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS vendor_bills_v1 (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  bill_no VARCHAR(50),
+  bill_date DATE,
+  due_date DATE,
+  vendor_id INT,
+  vendor_name VARCHAR(255),
+  po_id INT,
+  po_no VARCHAR(50),
+  amount DECIMAL(15,2),
+  status VARCHAR(50),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS vendor_payments_v1 (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  payment_no VARCHAR(50),
+  payment_date DATE,
+  vendor_id INT,
+  vendor_name VARCHAR(255),
+  bill_id INT,
+  amount DECIMAL(15,2),
+  payment_method VARCHAR(50),
+  reference VARCHAR(100),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS support_v2 (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  ticket_no VARCHAR(50),
+  title VARCHAR(255),
+  description TEXT,
+  client VARCHAR(255),
+  priority VARCHAR(50),
+  status VARCHAR(50),
+  category VARCHAR(100),
+  assigned_to VARCHAR(100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS catalog (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255),
+  category VARCHAR(100),
+  description TEXT,
+  price DECIMAL(15,2),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

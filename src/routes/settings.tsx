@@ -24,7 +24,7 @@ import { toast } from "sonner";
 import { ACCENTS, ACCENT_LABEL, applyAccent, type AccentKey } from "@/lib/accent";
 import { sendEmailViaConfig } from "@/lib/email-config.functions";
 import { useServerFn } from "@tanstack/react-start";
-import { $setLoginPin } from "@/lib/mysql-api";
+import { $setLoginPin, $dbCreate } from "@/lib/mysql-api";
 import {
   generateConfigKey, loadStoredConfig, saveStoredConfig, clearStoredConfig,
   decodeConfigKey, saveAppliedConfig, loadAppliedConfig, setupUrlFor,
@@ -248,6 +248,34 @@ function SettingsPage() {
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [notif, setNotif] = useState<Notif>(DEFAULT_NOTIF);
   const [company, setCompany] = useState<CompanyOverrides>(defaultCompany());
+  const [migratingData, setMigratingData] = useState(false);
+  async function migrateLocalDataToMysql() {
+    if (!confirm("Are you sure you want to push all local data to MySQL? Ensure the database is initialized with the schema.sql script first!")) return;
+    setMigratingData(true);
+    try {
+      const tablesToMigrate = ["clients_v2", "invoices", "quotations", "docs", "finance_accounts_v1", "finance_v2", "hr", "inventory_categories", "inventory_items", "inventory", "inventory_consumables", "inventory_assignments", "inventory_maintenance", "it_v2", "purchase_vendors_v1", "purchase_orders_v1", "purchase_grns_v1", "vendor_bills_v1", "vendor_payments_v1", "support_v2", "payments"];
+      let count = 0;
+      for (const table of tablesToMigrate) {
+        const raw = localStorage.getItem(`dms:${table}`);
+        if (!raw) continue;
+        const rows = JSON.parse(raw);
+        for (const row of rows) {
+          const { id, ...body } = row;
+          try {
+            await $dbCreate({ data: { table, body } });
+            count++;
+          } catch (e) {
+            console.warn(`Insert failed for ${table}:`, e);
+          }
+        }
+      }
+      toast.success(`Successfully migrated ${count} records to MySQL!`);
+    } catch (e: any) {
+      toast.error(e?.message || "Migration failed");
+    } finally {
+      setMigratingData(false);
+    }
+  }
   const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
   const [pwd1, setPwd1] = useState("");
   const [pwd2, setPwd2] = useState("");
@@ -673,6 +701,7 @@ function SettingsPage() {
           <TabsTrigger value="notifications" className="gap-1"><Bell className="h-4 w-4" /> Notifications</TabsTrigger>
           <TabsTrigger value="security" className="gap-1"><Shield className="h-4 w-4" /> Security</TabsTrigger>
           <TabsTrigger value="configurations" className="gap-1"><PlugZap className="h-4 w-4" /> Configurations</TabsTrigger>
+          <TabsTrigger value="migration" className="gap-1"><RefreshCcw className="h-4 w-4" /> Migration</TabsTrigger>
           <TabsTrigger value="backup" className="gap-1"><Download className="h-4 w-4" /> Backup</TabsTrigger>
           <TabsTrigger value="about" className="gap-1"><Info className="h-4 w-4" /> About</TabsTrigger>
         </TabsList>
@@ -1442,6 +1471,23 @@ function SettingsPage() {
           <ConfigurationsPanel companyName={COMPANY.name} companyEmail={COMPANY.email} />
         </TabsContent>
 
+        {/* MIGRATION */}
+        <TabsContent value="migration" className="space-y-5">
+          <Section icon={<RefreshCcw className="h-4 w-4" />} title="Database Migration" description="Push your local browser data to the central MySQL Database.">
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6">
+              <h3 className="text-lg font-semibold text-destructive mb-2">Migrate LocalStorage to MySQL</h3>
+              <p className="text-sm text-destructive/80 mb-4">
+                Before clicking this button, ensure you have initialized your MySQL database schema using the <code className="bg-destructive/10 px-1 py-0.5 rounded">src/lib/schema.sql</code> script provided in Phase 4.
+                This action will read all records stored in your browser's local storage and attempt to insert them into the MySQL server. It may take a few moments.
+              </p>
+              <Button disabled={migratingData} onClick={migrateLocalDataToMysql} variant="destructive" className="gap-2">
+                <RefreshCcw className={`h-4 w-4 ${migratingData ? 'animate-spin' : ''}`} />
+                {migratingData ? "Migrating Data..." : "Start Migration"}
+              </Button>
+            </div>
+          </Section>
+        </TabsContent>
+        
         {/* BACKUP */}
         <TabsContent value="backup" className="space-y-5">
           <Section icon={<Download className="h-4 w-4" />} title="Export a backup" description="Download all your workspace settings and preferences as a single JSON file. Business data (clients, invoices, tasks, etc.) stays safely in Lovable Cloud with automatic daily backups.">

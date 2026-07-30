@@ -13,6 +13,9 @@ import { Button } from "@/components/ui/button";
 import { localCrud } from "@/lib/local-store";
 import { PK_CITIES, PK_PROVINCES, PK_TAX_STATUS, fmtPKR } from "@/lib/pk";
 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ClientsHistoryTab } from "@/components/dms/ClientsHistoryTab";
+
 type Stage = "lead" | "qualified" | "proposal" | "negotiation" | "won" | "lost";
 
 type Client = {
@@ -265,6 +268,7 @@ function Pipeline({ rows }: { rows: Client[] }) {
 
 // ---------- Page ----------
 function ClientsPage() {
+  const [activeTab, setActiveTab] = useState("directory");
   const q = useQuery({ queryKey: ["clients_v2"], queryFn: api.list });
   const rows = q.data ?? [];
 
@@ -342,6 +346,13 @@ function ClientsPage() {
           />
         }
       />
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-6">
+          <TabsTrigger value="directory">Directory & Pipeline</TabsTrigger>
+          <TabsTrigger value="history">History & 360 View</TabsTrigger>
+        </TabsList>
+        <TabsContent value="directory" className="space-y-6">
 
       <StatsCards loading={q.isLoading} stats={[
         { label: "Total Clients",    value: rows.length,         hint: "All accounts",              icon: Users },
@@ -428,6 +439,11 @@ function ClientsPage() {
         />
       )}
       <ModuleReportsCard module="clients" />
+        </TabsContent>
+        <TabsContent value="history">
+          <ClientsHistoryTab />
+        </TabsContent>
+      </Tabs>
     </AppLayout>
   );
 }
