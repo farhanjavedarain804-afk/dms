@@ -192,10 +192,10 @@ function PortalLoginPage() {
         style={{ background: "oklch(0.75 0.14 25 / 0.35)" }}
       />
 
-      <div className="relative w-full max-w-6xl rounded-[2rem] bg-card/95 backdrop-blur shadow-[0_30px_80px_-20px_oklch(0.3_0.05_240/0.35)] overflow-hidden grid lg:grid-cols-[1.05fr_1fr] min-h-[640px] border border-white/60">
-        {/* Left brand panel */}
+      <div className="relative w-full max-w-6xl rounded-[2rem] bg-card/95 backdrop-blur shadow-[0_30px_80px_-20px_oklch(0.3_0.05_240/0.35)] overflow-hidden grid lg:grid-cols-[1.05fr_1fr] min-h-[500px] lg:min-h-[640px] border border-white/60">
+        {/* Left brand panel - Hidden on mobile/tablet */}
         <div
-          className="relative p-8 sm:p-12 text-white flex flex-col justify-between overflow-hidden"
+          className="relative hidden lg:flex p-8 sm:p-12 text-white flex-col justify-between overflow-hidden"
           style={{
             background:
               "linear-gradient(135deg, oklch(0.62 0.14 195) 0%, oklch(0.48 0.12 210) 45%, oklch(0.32 0.09 240) 100%)",
@@ -291,11 +291,18 @@ function PortalLoginPage() {
           {stage === "credentials" && (
             <>
               <div className="mb-8">
-                <p className="text-[11px] font-semibold tracking-[0.3em] text-primary/70">
+                {/* Mobile Logo */}
+                <div className="lg:hidden mb-6 flex items-center gap-3">
+                  <img src={logo} alt="Devionic" className="h-8 w-auto" />
+                  <div className="h-6 w-px bg-border" />
+                  <span className="text-[10px] tracking-[0.25em] text-muted-foreground">CLIENT PORTAL</span>
+                </div>
+                
+                <p className="hidden lg:block text-[11px] font-semibold tracking-[0.3em] text-primary/70">
                   CLIENT PORTAL
                 </p>
                 <h1 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
-                  Sign in to your portal
+                  Sign in
                 </h1>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Use the credentials shared with you by Devionic.
