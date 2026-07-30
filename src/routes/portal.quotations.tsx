@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { FileSpreadsheet, Download } from "lucide-react";
 import { usePortalIdentity } from "@/lib/portal-auth";
+import { matchesClient } from "@/lib/portal-data";
 import { fmtPKR } from "@/lib/pk";
 import { toast } from "sonner";
 
@@ -17,10 +18,7 @@ export const Route = createFileRoute("/portal/quotations")({
   component: PortalQuotations,
 });
 
-function matches(a?: string, b?: string) {
-  if (!a || !b) return false;
-  return a.toLowerCase().includes(b.toLowerCase()) || b.toLowerCase().includes(a.toLowerCase());
-}
+
 
 function PortalQuotations() {
   const ident = usePortalIdentity();
@@ -29,7 +27,7 @@ function PortalQuotations() {
   const refresh = () => {
     try {
       const all = JSON.parse(window.localStorage.getItem("dms:quotations") ?? "[]") as any[];
-      setRows(all.filter((q) => matches(q.client, ident.company) || matches(q.client, ident.name)));
+      setRows(all.filter((q) => matchesClient(q.client, ident)));
     } catch { setRows([]); }
   };
 

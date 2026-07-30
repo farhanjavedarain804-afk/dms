@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { CreditCard, ArrowUpRight } from "lucide-react";
 import { usePortalIdentity } from "@/lib/portal-auth";
+import { matchesClient } from "@/lib/portal-data";
 import { fmtPKR } from "@/lib/pk";
 import { toast } from "sonner";
 
@@ -17,10 +18,7 @@ export const Route = createFileRoute("/portal/payments")({
   component: PortalPayments,
 });
 
-function matches(a?: string, b?: string) {
-  if (!a || !b) return false;
-  return a.toLowerCase().includes(b.toLowerCase()) || b.toLowerCase().includes(a.toLowerCase());
-}
+
 
 function PortalPayments() {
   const ident = usePortalIdentity();
@@ -29,7 +27,7 @@ function PortalPayments() {
   useEffect(() => {
     try {
       const tx = JSON.parse(window.localStorage.getItem("dms:transactions") ?? "[]") as any[];
-      setRows(tx.filter((t) => matches(t.client, ident.company) || matches(t.client, ident.name)));
+      setRows(tx.filter((t) => matchesClient(t.client, ident)));
     } catch { setRows([]); }
   }, [ident.company, ident.name]);
 

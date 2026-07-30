@@ -2,6 +2,7 @@ import { Users, FolderKanban, UserRoundCog, DollarSign, LifeBuoy, TrendingUp, Tr
 import { useQuery } from "@tanstack/react-query";
 import { db } from "@/lib/db-client";
 import { useLocalArray } from "@/lib/use-local-array";
+import { fmtPKR } from "@/lib/pk";
 
 type Invoice = { id: number; total: number; amount_paid: number; invoice_date: string; status: string };
 type Client = { id: number; stage: string };
@@ -32,11 +33,6 @@ function useActiveProjects() {
   });
 }
 
-const fmtPKR = (n: number) => {
-  if (n >= 1_000_000) return `PKR ${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `PKR ${(n / 1_000).toFixed(1)}K`;
-  return `PKR ${n.toFixed(0)}`;
-};
 
 export function KpiCards() {
   const employees = useCount("employees");

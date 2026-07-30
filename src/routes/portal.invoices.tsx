@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Receipt, Download } from "lucide-react";
 import { usePortalIdentity } from "@/lib/portal-auth";
+import { matchesClient } from "@/lib/portal-data";
 import { fmtPKR } from "@/lib/pk";
 
 export const Route = createFileRoute("/portal/invoices")({
@@ -24,7 +25,7 @@ function PortalInvoices() {
     try {
       const raw = window.localStorage.getItem("dms:invoices");
       const all = raw ? JSON.parse(raw) as any[] : [];
-      const mine = all.filter((i) => matches(i.client, ident.company) || matches(i.client, ident.name));
+      const mine = all.filter((i) => matchesClient(i.client, ident));
       setRows(mine);
     } catch { setRows([]); }
   }, [ident.company, ident.name]);
@@ -110,10 +111,7 @@ function StatusChip({ status }: { status?: string }) {
   return <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${map[status ?? ""] ?? "bg-muted"}`}>{(status ?? "—").replace("_", " ")}</span>;
 }
 
-function matches(a?: string, b?: string) {
-  if (!a || !b) return false;
-  return a.toLowerCase().includes(b.toLowerCase()) || b.toLowerCase().includes(a.toLowerCase());
-}
+
 
 async function downloadInvoice(r: any) {
   try {

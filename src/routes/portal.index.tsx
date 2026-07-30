@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { usePortalIdentity } from "@/lib/portal-auth";
+import { matchesClient } from "@/lib/portal-data";
 import { fmtPKR } from "@/lib/pk";
 import { KEYS, readList, type PortalAnnouncement, type PortalNotification, markAnnouncementOpened, markAnnouncementRead, markAnnouncementDismissed } from "@/lib/portal-data";
 
@@ -41,10 +42,7 @@ function readLocal<T = any>(key: string): T[] {
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
-function matches(a?: string, b?: string) {
-  if (!a || !b) return false;
-  return a.toLowerCase().includes(b.toLowerCase()) || b.toLowerCase().includes(a.toLowerCase());
-}
+
 
 function PortalDashboard() {
   const ident = usePortalIdentity();
@@ -56,12 +54,12 @@ function PortalDashboard() {
   });
 
   useEffect(() => {
-    const invoices = readLocal<any>("invoices").filter((i) => matches(i.client, ident.company) || matches(i.client, ident.name));
+    const invoices = readLocal<any>("invoices").filter((i) => matchesClient(i.client, ident));
     const tickets = readLocal<any>("support_v2").filter((t) => (t.requester_email ?? "").toLowerCase() === ident.email.toLowerCase());
-    const projects = readLocal<any>("projects").filter((p) => matches(p.client, ident.company) || matches(p.client, ident.name));
-    const docs = readLocal<any>("generated_docs").filter((d) => matches(d.subject, ident.company) || matches(d.subject, ident.name));
-    const meetings = readLocal<any>("meetings").filter((m) => matches(m.client, ident.company) || matches(m.client, ident.name));
-    const transactions = readLocal<any>("transactions").filter((t) => matches(t.client, ident.company) || matches(t.client, ident.name));
+    const projects = readLocal<any>("projects").filter((p) => matchesClient(p.client, ident));
+    const docs = readLocal<any>("generated_docs").filter((d) => matchesClient(d.subject, ident));
+    const meetings = readLocal<any>("meetings").filter((m) => matchesClient(m.client, ident));
+    const transactions = readLocal<any>("transactions").filter((t) => matchesClient(t.client, ident));
     setData({ invoices, tickets, projects, docs, meetings, transactions });
   }, [ident.company, ident.name, ident.email]);
 
