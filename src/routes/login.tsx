@@ -296,11 +296,11 @@ function LoginPage() {
               <Sparkles className="h-3.5 w-3.5" />
               DIGITAL MANAGEMENT SYSTEM
             </span>
-            <h2 className="mt-6 sm:mt-8 text-[1.75rem] xs:text-3xl sm:text-4xl lg:text-[3.5rem] font-bold leading-[1.15] tracking-tight">
-              <span className="block">Run & Manage entire</span>
-              <span className="block">company from one</span>
+            <h2 className="mt-6 sm:mt-8 text-2xl xs:text-[28px] sm:text-4xl lg:text-5xl xl:text-[3.5rem] font-bold leading-[1.2] tracking-tight">
+              <span className="block whitespace-nowrap">Run & Manage entire</span>
+              <span className="block whitespace-nowrap">company from one</span>
               <span
-                className="block bg-clip-text text-transparent"
+                className="block whitespace-nowrap bg-clip-text text-transparent"
                 style={{
                   backgroundImage:
                     "linear-gradient(90deg, oklch(0.95 0.05 90), oklch(0.85 0.15 60))",
