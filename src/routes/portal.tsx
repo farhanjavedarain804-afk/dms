@@ -75,6 +75,7 @@ function PortalShell() {
   const ident = usePortalIdentity();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -118,8 +119,10 @@ function PortalShell() {
     <div className="flex min-h-screen w-full bg-gradient-to-br from-muted/30 via-background to-muted/40">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-72 shrink-0 border-r bg-white text-foreground transform transition-transform md:static md:translate-x-0 md:flex md:flex-col ${
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-40 shrink-0 border-r bg-white text-foreground transform transition-all duration-300 md:flex md:flex-col ${
+          mobileOpen ? "translate-x-0 w-72" : "-translate-x-full w-72"
+        } ${
+          sidebarOpen ? "md:static md:translate-x-0 md:w-72" : "md:absolute md:-translate-x-full md:w-0 md:border-none md:overflow-hidden"
         }`}
       >
         <div className="h-16 flex items-center gap-3 px-5 border-b">
@@ -202,9 +205,15 @@ function PortalShell() {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="sticky top-0 z-20 h-16 shrink-0 border-b bg-card/80 backdrop-blur flex items-center gap-3 px-4 sm:px-6">
           <button
-            onClick={() => setMobileOpen(true)}
-            className="md:hidden h-9 w-9 grid place-items-center rounded-md border hover:bg-accent"
-            aria-label="Open menu"
+            onClick={() => {
+              if (window.innerWidth < 768) {
+                setMobileOpen(true);
+              } else {
+                setSidebarOpen((prev) => !prev);
+              }
+            }}
+            className="h-9 w-9 grid place-items-center rounded-md border hover:bg-accent shrink-0"
+            aria-label="Toggle menu"
           >
             <Menu className="h-4 w-4" />
           </button>
