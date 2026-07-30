@@ -122,7 +122,7 @@ function PortalShell() {
         className={`fixed inset-y-0 left-0 z-40 shrink-0 border-r bg-white text-foreground transform transition-all duration-300 md:flex md:flex-col ${
           mobileOpen ? "translate-x-0 w-72" : "-translate-x-full w-72"
         } ${
-          sidebarOpen ? "md:static md:translate-x-0 md:w-72" : "md:absolute md:-translate-x-full md:w-0 md:border-none md:overflow-hidden"
+          sidebarOpen ? "md:sticky md:top-0 md:h-screen md:translate-x-0 md:w-72" : "md:absolute md:-translate-x-full md:w-0 md:border-none md:overflow-hidden"
         }`}
       >
         <div className="h-16 flex items-center gap-3 px-5 border-b">

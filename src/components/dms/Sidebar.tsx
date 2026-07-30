@@ -166,9 +166,9 @@ export function Sidebar() {
   return (
     <>
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 shrink-0 flex-col bg-sidebar text-sidebar-foreground h-screen sticky top-0 transition-all duration-300 md:flex",
+        "fixed inset-y-0 left-0 z-40 shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 md:flex",
         mobileOpen ? "flex translate-x-0 w-64" : "hidden -translate-x-full w-64 md:translate-x-0",
-        sidebarOpen ? "md:static md:w-64" : "md:absolute md:-translate-x-full md:w-0 md:border-none md:overflow-hidden"
+        sidebarOpen ? "md:sticky md:top-0 md:h-screen md:w-64" : "md:absolute md:-translate-x-full md:w-0 md:border-none md:overflow-hidden"
       )}>
         <div className="px-5 py-5 border-b border-sidebar-border flex items-center justify-between">
           <img src={logo} alt="Devionic" className="h-9 w-auto brightness-0 invert" />
