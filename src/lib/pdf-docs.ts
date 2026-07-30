@@ -11,11 +11,23 @@ async function getLogoDataUrl(): Promise<string | null> {
   try {
     const res = await fetch(devionicLogoAsset);
     const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
     const dataUrl: string = await new Promise((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(r.result as string);
-      r.onerror = reject;
-      r.readAsDataURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d")!;
+        // Fill white background so transparent PNG areas don't appear black in jsPDF
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(blobUrl);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      img.onerror = reject;
+      img.src = blobUrl;
     });
     _logoCache = dataUrl;
     return dataUrl;
