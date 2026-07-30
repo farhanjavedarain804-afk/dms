@@ -296,7 +296,7 @@ function LoginPage() {
               <Sparkles className="h-3.5 w-3.5" />
               DIGITAL MANAGEMENT SYSTEM
             </span>
-            <h2 className="mt-6 sm:mt-8 text-2xl xs:text-[28px] sm:text-4xl lg:text-5xl xl:text-[3.5rem] font-bold leading-[1.2] tracking-tight">
+            <h2 className="mt-6 sm:mt-8 text-xl xs:text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold leading-[1.2] tracking-tight">
               <span className="block whitespace-nowrap">Run & Manage entire</span>
               <span className="block whitespace-nowrap">company from one</span>
               <span
@@ -309,19 +309,19 @@ function LoginPage() {
                 dashboard.
               </span>
             </h2>
-            <p className="mt-4 text-sm sm:text-base text-white/85 leading-relaxed">
-              Devionic connects people, projects, and performance through intelligent automation — making work faster, smarter, and simpler
+            <p className="mt-4 text-[13px] sm:text-sm text-white/85 leading-relaxed pr-4">
+              Devionic connects people, projects, and performance through intelligent automation —<br className="hidden sm:block" /> making work faster, smarter, and simpler
             </p>
 
-            <ul className="mt-8 space-y-4">
+            <ul className="mt-6 space-y-3">
               {FEATURES.map(({ icon: Icon, title, desc }) => (
-                <li key={title} className="flex items-start gap-3">
-                  <span className="mt-0.5 grid place-items-center h-9 w-9 rounded-xl bg-white/10 border border-white/20 backdrop-blur">
-                    <Icon className="h-4.5 w-4.5" />
+                <li key={title} className="flex items-start gap-2.5">
+                  <span className="mt-0.5 grid place-items-center h-8 w-8 rounded-xl bg-white/10 border border-white/20 backdrop-blur shrink-0">
+                    <Icon className="h-4 w-4" />
                   </span>
                   <div>
-                    <p className="text-sm font-semibold">{title}</p>
-                    <p className="text-xs text-white/70">{desc}</p>
+                    <p className="text-[13px] font-semibold">{title}</p>
+                    <p className="text-[11px] text-white/70">{desc}</p>
                   </div>
                 </li>
               ))}
