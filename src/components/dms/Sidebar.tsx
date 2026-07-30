@@ -16,6 +16,7 @@ import { toast } from "sonner";
 const logo = "/devionic-logo.png";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { useLayoutStore } from "@/lib/layout-store";
 
 const SidebarDialogs = lazy(() =>
   import("./SidebarDialogs").then((m) => ({ default: m.SidebarDialogs })),
@@ -80,6 +81,7 @@ const sections: NavSection[] = [
 
 
 export function Sidebar() {
+  const { sidebarOpen, mobileOpen, setMobileOpen } = useLayoutStore();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -162,10 +164,21 @@ export function Sidebar() {
 
 
   return (
-    <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground h-screen sticky top-0">
-      <div className="px-5 py-5 border-b border-sidebar-border">
-        <img src={logo} alt="Devionic" className="h-9 w-auto brightness-0 invert" />
-      </div>
+    <>
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-40 shrink-0 flex-col bg-sidebar text-sidebar-foreground h-screen sticky top-0 transition-all duration-300 md:flex",
+        mobileOpen ? "flex translate-x-0 w-64" : "hidden -translate-x-full w-64 md:translate-x-0",
+        sidebarOpen ? "md:static md:w-64" : "md:absolute md:-translate-x-full md:w-0 md:border-none md:overflow-hidden"
+      )}>
+        <div className="px-5 py-5 border-b border-sidebar-border flex items-center justify-between">
+          <img src={logo} alt="Devionic" className="h-9 w-auto brightness-0 invert" />
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="md:hidden h-8 w-8 grid place-items-center rounded-md hover:bg-sidebar-accent"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-3">
         {sections.map((section, si) => (
           <div key={si} className="space-y-0.5">
@@ -333,6 +346,10 @@ export function Sidebar() {
         </Suspense>
       )}
     </aside>
+    {mobileOpen && (
+      <button onClick={() => setMobileOpen(false)} className="fixed inset-0 z-30 bg-black/40 md:hidden" aria-label="Close" />
+    )}
+    </>
   );
 }
 

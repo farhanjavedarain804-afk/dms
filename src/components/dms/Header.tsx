@@ -1,4 +1,4 @@
-import { Search, Bell, MessageSquare, Sun, Moon, LogOut, HelpCircle } from "lucide-react";
+import { Search, Bell, MessageSquare, Sun, Moon, LogOut, HelpCircle, Menu } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -7,6 +7,7 @@ import {
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useLayoutStore } from "@/lib/layout-store";
 
 const MODULES: { label: string; to: string }[] = [
   { label: "Dashboard", to: "/" },
@@ -37,6 +38,7 @@ const NOTIFICATIONS = [
 
 export function Header() {
   const { user, logout } = useAuth();
+  const { toggleSidebar, setMobileOpen } = useLayoutStore();
   const navigate = useNavigate();
   const initials = (user?.name ?? "U")
     .split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
@@ -89,12 +91,26 @@ export function Header() {
   };
 
   return (
-    <header className="flex items-center gap-4 border-b bg-card px-6 py-4">
-      <div className="flex-1">
-        <h1 className="text-lg font-bold text-foreground">
+    <header className="flex items-center gap-4 border-b bg-card px-4 sm:px-6 py-4">
+      <button
+        onClick={() => {
+          if (window.innerWidth < 768) {
+            setMobileOpen(true);
+          } else {
+            toggleSidebar();
+          }
+        }}
+        className="h-9 w-9 grid place-items-center rounded-md border hover:bg-accent shrink-0"
+        aria-label="Toggle menu"
+      >
+        <Menu className="h-4 w-4" />
+      </button>
+      
+      <div className="flex-1 min-w-0">
+        <h1 className="text-base sm:text-lg font-bold text-foreground truncate">
           Digital Management System (DMS)
         </h1>
-        <p className="text-xs text-muted-foreground">Devionic (Private) Limited</p>
+        <p className="text-xs text-muted-foreground truncate">Devionic (Private) Limited</p>
       </div>
 
       <div className="hidden md:flex items-center gap-2 w-96 rounded-lg border bg-muted/50 px-3 py-2 focus-within:ring-2 focus-within:ring-primary/40">

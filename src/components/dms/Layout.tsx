@@ -1,14 +1,16 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import { RequireAuth } from "@/lib/auth";
+import { useLayoutStore } from "@/lib/layout-store";
 
 const Sidebar = lazy(() => import("./Sidebar").then((m) => ({ default: m.Sidebar })));
 const Header = lazy(() => import("./Header").then((m) => ({ default: m.Header })));
 
 export function AppLayout({ children }: { children: ReactNode }) {
+  const { sidebarOpen, mobileOpen, setMobileOpen } = useLayoutStore();
   return (
     <RequireAuth>
       <div className="flex min-h-screen bg-muted/40">
-        <Suspense fallback={<div className="hidden w-64 shrink-0 border-r bg-sidebar md:block" />}>
+        <Suspense fallback={<div className={`hidden shrink-0 border-r bg-sidebar md:block ${sidebarOpen ? 'w-64' : 'w-0 overflow-hidden border-none'}`} />}>
           <Sidebar />
         </Suspense>
         <div className="flex-1 flex flex-col min-w-0">
