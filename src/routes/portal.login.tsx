@@ -3,12 +3,20 @@ import { useEffect, useRef, useState } from "react";
 import {
   Building2, Lock, Mail, RefreshCw, ShieldCheck, Eye, EyeOff,
   Key, Download, CheckCircle2, AlertTriangle, ArrowRight,
+  Globe, Sparkles, FolderKanban, Receipt, LifeBuoy,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useMathCaptcha } from "@/lib/portal-auth";
 import { $generateClientSecurityKey, $verifyClientSecurityKey } from "@/lib/mysql-api";
 import { Button } from "@/components/ui/button";
 import { COMPANY } from "@/lib/company";
+const logo = "/devionic-logo.png";
+
+const PORTAL_FEATURES = [
+  { icon: FolderKanban, title: "Projects & Tasks", desc: "Track your projects, tasks and milestones live." },
+  { icon: Receipt, title: "Invoices & Payments", desc: "View, download and pay invoices securely." },
+  { icon: LifeBuoy, title: "Support Tickets", desc: "Raise and track support requests anytime." },
+];
 
 // Unique key used to trust a device per email
 const TRUST_KEY = (email: string) => `portal:trusted:${email.toLowerCase()}`;
@@ -166,107 +174,118 @@ function PortalLoginPage() {
   // ──────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen w-full flex bg-background font-sans selection:bg-primary/20">
-      {/* Left branding panel */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between relative overflow-hidden bg-zinc-950 text-white p-10 xl:p-16">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-50" />
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)",
-              backgroundSize: "22px 22px",
-              maskImage:
-                "radial-gradient(ellipse at 30% 40%, black 0%, transparent 70%)",
-            }}
-          />
-        </div>
+    <div
+      className="min-h-screen relative overflow-hidden grid place-items-center p-4 sm:p-6"
+      style={{ background: "oklch(0.97 0.008 220)" }}
+    >
+      {/* Ambient decorations */}
+      <div
+        className="pointer-events-none absolute -top-40 -right-40 h-[32rem] w-[32rem] rounded-full blur-3xl opacity-60"
+        style={{ background: "oklch(0.78 0.15 190 / 0.55)" }}
+      />
+      <div
+        className="pointer-events-none absolute -bottom-40 -left-40 h-[36rem] w-[36rem] rounded-full blur-3xl opacity-60"
+        style={{ background: "oklch(0.82 0.14 90 / 0.5)" }}
+      />
+      <div
+        className="pointer-events-none absolute top-1/3 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full blur-3xl opacity-40"
+        style={{ background: "oklch(0.75 0.14 25 / 0.35)" }}
+      />
 
-        {/* Top: brand */}
-        <div className="relative flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-white/15 grid place-items-center">
-              <Building2 className="h-5 w-5" />
-            </div>
-            <div className="hidden sm:block h-8 w-px bg-white/30" />
-            <span className="hidden sm:inline text-[11px] tracking-[0.35em] text-white/80">
-              CLIENT PORTAL
-            </span>
-          </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[10px] tracking-widest text-white/90 border border-white/20">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />
-            SECURE
-          </span>
-        </div>
-
-        {/* Middle: hero */}
-        <div className="relative max-w-md">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-[11px] tracking-wider text-white/90">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            CLIENT WORKSPACE
-          </span>
-          <h2 className="mt-5 text-4xl sm:text-5xl font-bold leading-[1.05]">
-            Run & Manage entire<br />
-            company from one<br />
-            <span
-              className="bg-clip-text text-transparent"
+      <div className="relative w-full max-w-6xl rounded-[2rem] bg-card/95 backdrop-blur shadow-[0_30px_80px_-20px_oklch(0.3_0.05_240/0.35)] overflow-hidden grid lg:grid-cols-[1.05fr_1fr] min-h-[640px] border border-white/60">
+        {/* Left brand panel */}
+        <div
+          className="relative p-8 sm:p-12 text-white flex flex-col justify-between overflow-hidden"
+          style={{
+            background:
+              "linear-gradient(135deg, oklch(0.62 0.14 195) 0%, oklch(0.48 0.12 210) 45%, oklch(0.32 0.09 240) 100%)",
+          }}
+        >
+          {/* Geometric ambience */}
+          <div className="pointer-events-none absolute inset-0 opacity-40">
+            <div className="absolute top-10 right-14 h-8 w-8 rotate-45 border border-white/60" />
+            <div className="absolute top-28 right-28 h-3 w-3 rotate-45 bg-white/60" />
+            <div className="absolute top-40 right-16 h-2 w-2 rounded-full bg-white/50" />
+            <div className="absolute bottom-24 left-10 h-56 w-56 rounded-full border border-white/30" />
+            <div className="absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-white/10 blur-2xl" />
+            <div
+              className="absolute inset-0"
               style={{
                 backgroundImage:
-                  "linear-gradient(90deg, oklch(0.95 0.05 90), oklch(0.85 0.15 60))",
+                  "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)",
+                backgroundSize: "22px 22px",
+                maskImage:
+                  "radial-gradient(ellipse at 30% 40%, black 0%, transparent 70%)",
               }}
-            >
-              dashboard.
-            </span>
-          </h2>
-          <p className="mt-4 text-sm sm:text-base text-white/85 leading-relaxed">
-            Devionic connects people, projects, and performance through intelligent automation — making work faster, smarter, and simpler
-          </p>
-
-          <ul className="mt-8 space-y-4">
-            <li className="flex items-start gap-3">
-              <span className="mt-0.5 grid place-items-center h-9 w-9 rounded-xl bg-white/10 border border-white/20 backdrop-blur">
-                <ShieldCheck className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="text-sm font-semibold">Encrypted, role-based access</p>
-                <p className="text-xs text-white/70">Securely view invoices & projects.</p>
-              </div>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="mt-0.5 grid place-items-center h-9 w-9 rounded-xl bg-white/10 border border-white/20 backdrop-blur">
-                <Key className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="text-sm font-semibold">Security key protection</p>
-                <p className="text-xs text-white/70">Your account is guarded by a unique 32-char key.</p>
-              </div>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="mt-0.5 grid place-items-center h-9 w-9 rounded-xl bg-white/10 border border-white/20 backdrop-blur">
-                <RefreshCw className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="text-sm font-semibold">Real-time sync with Devionic teams</p>
-                <p className="text-xs text-white/70">Always up-to-date with your work.</p>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        {/* Bottom: footer meta */}
-        <div className="relative flex items-center justify-between text-[11px] text-white/70">
-          <div className="flex items-center gap-2">
-            <Building2 className="h-3.5 w-3.5" />
-            <span className="tracking-[0.25em] uppercase">{COMPANY.name}</span>
+            />
           </div>
-          <span>© {new Date().getFullYear()} All rights reserved</span>
-        </div>
-      </div>
 
-      {/* Right form panel */}
-      <div className="relative w-full lg:w-1/2 p-8 sm:p-12 lg:p-14 flex flex-col justify-center bg-card">
-        <div className="mx-auto w-full max-w-md">
+          {/* Top: brand */}
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img src={logo} alt="Devionic" className="h-10 w-auto brightness-0 invert" />
+              <div className="hidden sm:block h-8 w-px bg-white/30" />
+              <span className="hidden sm:inline text-[11px] tracking-[0.35em] text-white/80">
+                CLIENT PORTAL
+              </span>
+            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[10px] tracking-widest text-white/90 border border-white/20">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />
+              SECURE
+            </span>
+          </div>
+
+          {/* Middle: hero */}
+          <div className="relative max-w-md">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-[11px] tracking-wider text-white/90">
+              <Sparkles className="h-3.5 w-3.5" />
+              CLIENT SELF-SERVICE PORTAL
+            </span>
+            <h2 className="mt-5 text-4xl sm:text-5xl font-bold leading-[1.05]">
+              Your projects &amp;<br />
+              invoices — all in
+              <span
+                className="block bg-clip-text text-transparent"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(90deg, oklch(0.95 0.05 90), oklch(0.85 0.15 60))",
+                }}
+              >
+                one place.
+              </span>
+            </h2>
+            <p className="mt-4 text-sm sm:text-base text-white/85 leading-relaxed">
+              Devionic gives every client a dedicated workspace — track projects, view invoices, raise tickets, and stay connected with your team.
+            </p>
+
+            <ul className="mt-8 space-y-4">
+              {PORTAL_FEATURES.map(({ icon: Icon, title, desc }) => (
+                <li key={title} className="flex items-start gap-3">
+                  <span className="mt-0.5 grid place-items-center h-9 w-9 rounded-xl bg-white/10 border border-white/20 backdrop-blur">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold">{title}</p>
+                    <p className="text-xs text-white/70">{desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Bottom: footer meta */}
+          <div className="relative flex items-center justify-between text-[11px] text-white/70">
+            <div className="flex items-center gap-2">
+              <Globe className="h-3.5 w-3.5" />
+              <span className="tracking-[0.25em]">DEVIONIC (PRIVATE) LIMITED</span>
+            </div>
+            <span>© {new Date().getFullYear()} All rights reserved</span>
+          </div>
+        </div>
+
+        {/* Right form panel */}
+        <div className="relative p-8 sm:p-12 lg:p-14 flex flex-col justify-center bg-card">
+          <div className="mx-auto w-full max-w-md">
 
           {/* ── Stage: credentials ── */}
           {stage === "credentials" && (
@@ -519,6 +538,7 @@ function PortalLoginPage() {
               </a>
             </p>
           </div>
+        </div>
         </div>
       </div>
     </div>
