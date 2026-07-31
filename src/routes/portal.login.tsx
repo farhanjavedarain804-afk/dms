@@ -175,7 +175,7 @@ function PortalLoginPage() {
 
   return (
     <div
-      className="min-h-screen relative overflow-hidden grid place-items-center p-4 sm:p-6"
+      className="h-[100dvh] w-full relative overflow-hidden flex flex-col justify-center items-center p-4 sm:p-6"
       style={{ background: "oklch(0.97 0.008 220)" }}
     >
       {/* Ambient decorations */}
@@ -192,7 +192,7 @@ function PortalLoginPage() {
         style={{ background: "oklch(0.75 0.14 25 / 0.35)" }}
       />
 
-      <div className="relative w-full max-w-6xl rounded-[2rem] bg-card/95 backdrop-blur shadow-[0_30px_80px_-20px_oklch(0.3_0.05_240/0.35)] overflow-hidden grid lg:grid-cols-[1.05fr_1fr] min-h-[500px] lg:min-h-[640px] border border-white/60">
+      <div className="relative w-full max-w-6xl rounded-[2rem] bg-card/95 backdrop-blur shadow-[0_30px_80px_-20px_oklch(0.3_0.05_240/0.35)] overflow-hidden grid lg:grid-cols-[1.05fr_1fr] h-[calc(100dvh-6rem)] lg:h-[85dvh] min-h-[500px] border border-white/60">
         {/* Left brand panel - Hidden on mobile/tablet */}
         <div
           className="relative hidden lg:flex p-8 sm:p-12 text-white flex-col justify-between overflow-hidden"
@@ -284,8 +284,8 @@ function PortalLoginPage() {
         </div>
 
         {/* Right form panel */}
-        <div className="relative p-8 sm:p-12 lg:p-14 flex flex-col justify-center bg-card">
-          <div className="mx-auto w-full max-w-md">
+        <div className="relative p-6 sm:p-10 lg:p-12 flex flex-col justify-center bg-card overflow-y-auto">
+          <div className="mx-auto w-full max-w-md my-auto py-4">
 
           {/* ── Stage: credentials ── */}
           {stage === "credentials" && (
@@ -577,11 +577,13 @@ function PortalLoginPage() {
         </div>
       </div>
 
-      <p className="relative mt-6 text-xs sm:text-sm text-muted-foreground text-center px-4">
+      <p className="absolute bottom-3 left-0 w-full mt-4 text-[10px] sm:text-xs text-muted-foreground text-center px-4 pointer-events-none">
         Devionic (Private) Limited · Head Office, Multan Road Chowk Azam, Tehsil &amp; District Layyah, Punjab, Pakistan — 31450<br className="hidden sm:block" />
-        +92-317-7121841 ·{" "}
-        <a href="https://www.devionic.com" target="_blank" rel="noreferrer" className="hover:text-foreground transition">www.devionic.com</a> ·{" "}
-        <a href="mailto:info@devionic.com" className="hover:text-foreground transition">info@devionic.com</a> · NTN H534200 · SECP CUIN 0308965
+        <span className="pointer-events-auto">
+          +92-317-7121841 ·{" "}
+          <a href="https://www.devionic.com" target="_blank" rel="noreferrer" className="hover:text-foreground transition">www.devionic.com</a> ·{" "}
+          <a href="mailto:info@devionic.com" className="hover:text-foreground transition">info@devionic.com</a> · NTN H534200 · SECP CUIN 0308965
+        </span>
       </p>
     </div>
   );
