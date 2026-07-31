@@ -243,10 +243,10 @@ function LoginPage() {
         style={{ background: "oklch(0.75 0.14 25 / 0.35)" }}
       />
 
-      <div className="relative w-full max-w-6xl rounded-[2rem] bg-card/95 backdrop-blur shadow-[0_30px_80px_-20px_oklch(0.3_0.05_240/0.35)] overflow-hidden grid lg:grid-cols-[1.05fr_1fr] min-h-[580px] lg:min-h-[600px] border border-white/60">
+      <div className="relative w-full max-w-6xl rounded-[2rem] bg-card/95 backdrop-blur shadow-[0_30px_80px_-20px_oklch(0.3_0.05_240/0.35)] overflow-hidden grid lg:grid-cols-[1.05fr_1fr] border border-white/60">
         {/* Left brand panel */}
         <div
-          className="relative p-8 sm:p-12 text-white flex flex-col justify-between overflow-hidden"
+          className="relative p-6 sm:p-10 text-white flex flex-col justify-between overflow-hidden"
           style={{
             background:
               "linear-gradient(135deg, oklch(0.62 0.14 195) 0%, oklch(0.48 0.12 210) 45%, oklch(0.32 0.09 240) 100%)",
@@ -342,7 +342,7 @@ function LoginPage() {
         {/* Right form panel */}
         <div
           id="form"
-          className="relative p-8 sm:p-12 lg:p-14 flex flex-col justify-center bg-card"
+          className="relative p-6 sm:p-10 lg:px-14 lg:py-10 flex flex-col justify-center bg-card"
         >
           <div className="mx-auto w-full max-w-md">
             <div className="mb-8">
