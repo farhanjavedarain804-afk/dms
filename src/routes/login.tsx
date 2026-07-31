@@ -309,9 +309,9 @@ function LoginPage() {
                 dashboard.
               </span>
             </h2>
-            <p className="mt-4 text-xs sm:text-sm text-white/85 leading-relaxed">
-              <span className="block">Devionic connects people, projects, and performance through intelligent automation —</span>
-              <span className="block">making work faster, smarter, and simpler</span>
+            <p className="mt-4 text-[10px] xs:text-xs sm:text-sm text-white/85 leading-relaxed">
+              <span className="block whitespace-nowrap">Devionic connects people, projects, and performance through</span>
+              <span className="block whitespace-nowrap">intelligent automation — making work faster, smarter, and simpler</span>
             </p>
 
             <ul className="mt-8 space-y-4">
