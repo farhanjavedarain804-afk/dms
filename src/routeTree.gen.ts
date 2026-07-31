@@ -62,6 +62,7 @@ import { Route as PortalPaymentsRouteImport } from './routes/portal.payments'
 import { Route as PortalProfileRouteImport } from './routes/portal.profile'
 import { Route as PortalProjectsRouteImport } from './routes/portal.projects'
 import { Route as PortalQuotationsRouteImport } from './routes/portal.quotations'
+import { Route as PortalRegisterRouteImport } from './routes/portal.register'
 import { Route as PortalServicesRouteImport } from './routes/portal.services'
 import { Route as PortalTasksRouteImport } from './routes/portal.tasks'
 import { Route as PortalTicketsRouteImport } from './routes/portal.tickets'
@@ -331,6 +332,11 @@ const PortalQuotationsRoute = PortalQuotationsRouteImport.update({
   path: '/quotations',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalRegisterRoute = PortalRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalServicesRoute = PortalServicesRouteImport.update({
   id: '/services',
   path: '/services',
@@ -400,6 +406,7 @@ export interface FileRoutesByFullPath {
   '/portal/profile': typeof PortalProfileRoute
   '/portal/projects': typeof PortalProjectsRoute
   '/portal/quotations': typeof PortalQuotationsRoute
+  '/portal/register': typeof PortalRegisterRoute
   '/portal/services': typeof PortalServicesRoute
   '/portal/tasks': typeof PortalTasksRoute
   '/portal/tickets': typeof PortalTicketsRoute
@@ -457,6 +464,7 @@ export interface FileRoutesByTo {
   '/portal/profile': typeof PortalProfileRoute
   '/portal/projects': typeof PortalProjectsRoute
   '/portal/quotations': typeof PortalQuotationsRoute
+  '/portal/register': typeof PortalRegisterRoute
   '/portal/services': typeof PortalServicesRoute
   '/portal/tasks': typeof PortalTasksRoute
   '/portal/tickets': typeof PortalTicketsRoute
@@ -516,6 +524,7 @@ export interface FileRoutesById {
   '/portal/profile': typeof PortalProfileRoute
   '/portal/projects': typeof PortalProjectsRoute
   '/portal/quotations': typeof PortalQuotationsRoute
+  '/portal/register': typeof PortalRegisterRoute
   '/portal/services': typeof PortalServicesRoute
   '/portal/tasks': typeof PortalTasksRoute
   '/portal/tickets': typeof PortalTicketsRoute
@@ -576,6 +585,7 @@ export interface FileRouteTypes {
     | '/portal/profile'
     | '/portal/projects'
     | '/portal/quotations'
+    | '/portal/register'
     | '/portal/services'
     | '/portal/tasks'
     | '/portal/tickets'
@@ -633,6 +643,7 @@ export interface FileRouteTypes {
     | '/portal/profile'
     | '/portal/projects'
     | '/portal/quotations'
+    | '/portal/register'
     | '/portal/services'
     | '/portal/tasks'
     | '/portal/tickets'
@@ -691,6 +702,7 @@ export interface FileRouteTypes {
     | '/portal/profile'
     | '/portal/projects'
     | '/portal/quotations'
+    | '/portal/register'
     | '/portal/services'
     | '/portal/tasks'
     | '/portal/tickets'
@@ -1111,6 +1123,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalQuotationsRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/register': {
+      id: '/portal/register'
+      path: '/register'
+      fullPath: '/portal/register'
+      preLoaderRoute: typeof PortalRegisterRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/services': {
       id: '/portal/services'
       path: '/services'
@@ -1150,6 +1169,7 @@ interface PortalRouteChildren {
   PortalProfileRoute: typeof PortalProfileRoute
   PortalProjectsRoute: typeof PortalProjectsRoute
   PortalQuotationsRoute: typeof PortalQuotationsRoute
+  PortalRegisterRoute: typeof PortalRegisterRoute
   PortalServicesRoute: typeof PortalServicesRoute
   PortalTasksRoute: typeof PortalTasksRoute
   PortalTicketsRoute: typeof PortalTicketsRoute
@@ -1171,6 +1191,7 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalProfileRoute: PortalProfileRoute,
   PortalProjectsRoute: PortalProjectsRoute,
   PortalQuotationsRoute: PortalQuotationsRoute,
+  PortalRegisterRoute: PortalRegisterRoute,
   PortalServicesRoute: PortalServicesRoute,
   PortalTasksRoute: PortalTasksRoute,
   PortalTicketsRoute: PortalTicketsRoute,

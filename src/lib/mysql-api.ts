@@ -58,6 +58,30 @@ export const $createUser = createServerFn({ method: 'POST' })
     }
   });
 
+export const $registerPortalClient = createServerFn({ method: 'POST' })
+  .validator((data: { email: string; password: string; name: string; phone: string; company?: string; type: 'business' | 'individual' }) => data)
+  .handler(async ({ data }) => {
+    try {
+      await ensureAuthTables();
+      // 1. Create the auth user (this will throw if email exists)
+      const user = await createUser(data.email, data.password, data.name, 'Client');
+      
+      // 2. Insert into clients_v2 table
+      await db('clients_v2').insert({
+        name: data.name,
+        company: data.company || null,
+        email: data.email,
+        phone: data.phone,
+        stage: 'Lead/New',
+      });
+      
+      return { ok: true, user };
+    } catch (err: any) {
+      console.error('[registerPortalClient] Error:', err?.message ?? err);
+      throw new Error(err?.message ?? 'Failed to register client.');
+    }
+  });
+
 export const $listUsers = createServerFn({ method: 'GET' })
   .handler(async () => {
     await ensureAuthTables();

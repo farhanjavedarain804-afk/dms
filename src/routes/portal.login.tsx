@@ -552,7 +552,7 @@ function PortalLoginPage() {
                 type="button" 
                 variant="outline" 
                 className="w-full rounded-xl text-xs bg-muted/30 border-dashed hover:bg-muted/50 hover:border-solid transition-all"
-                onClick={() => alert("Business registration coming soon!")}
+                onClick={() => navigate({ to: "/portal/register", search: { type: "business" } })}
               >
                 Register as Business
               </Button>
@@ -560,7 +560,7 @@ function PortalLoginPage() {
                 type="button" 
                 variant="outline" 
                 className="w-full rounded-xl text-xs bg-muted/30 border-dashed hover:bg-muted/50 hover:border-solid transition-all"
-                onClick={() => alert("Individual registration coming soon!")}
+                onClick={() => navigate({ to: "/portal/register", search: { type: "individual" } })}
               >
                 Register as Individual
               </Button>
