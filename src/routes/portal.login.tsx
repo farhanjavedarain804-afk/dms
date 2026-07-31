@@ -4,11 +4,19 @@ import {
   Building2, Lock, Mail, RefreshCw, ShieldCheck, Eye, EyeOff,
   Key, Download, CheckCircle2, AlertTriangle, ArrowRight,
   Globe, Sparkles, FolderKanban, Receipt, LifeBuoy,
+  UserPlus, MapPin, User, Phone
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useMathCaptcha } from "@/lib/portal-auth";
-import { $generateClientSecurityKey, $verifyClientSecurityKey } from "@/lib/mysql-api";
+import { $generateClientSecurityKey, $verifyClientSecurityKey, $registerPortalClient } from "@/lib/mysql-api";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { COMPANY } from "@/lib/company";
 const logo = "/devionic-logo.png";
 
@@ -20,6 +28,242 @@ const PORTAL_FEATURES = [
 
 // Unique key used to trust a device per email
 const TRUST_KEY = (email: string) => `portal:trusted:${email.toLowerCase()}`;
+
+function RegisterModal({ 
+  open, 
+  onOpenChange,
+  initialType = 'business'
+}: { 
+  open: boolean; 
+  onOpenChange: (open: boolean) => void;
+  initialType?: 'business' | 'individual';
+}) {
+  const [regModalOpen, setRegModalOpen] = useState(false);
+  const [regType, setRegType] = useState<'business' | 'individual'>('business');
+
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [type, setType] = useState<'business' | 'individual'>(initialType);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirm: "",
+    company: "",
+    country: "",
+    state: "",
+    city: "",
+    address: "",
+    postal_code: "",
+  });
+
+  // Reset when opened/closed or type changed
+  useEffect(() => {
+    setType(initialType);
+    setError(null);
+    setForm({
+      name: "", email: "", phone: "", password: "", confirm: "", 
+      company: "", country: "", state: "", city: "", address: "", postal_code: ""
+    });
+  }, [open, initialType]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (form.password !== form.confirm) {
+      setError("Passwords do not match.");
+      return;
+    }
+    if (form.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await $registerPortalClient({ data: {
+        email: form.email,
+        password: form.password,
+        name: form.name,
+        phone: form.phone,
+        company: type === 'business' ? form.company : undefined,
+        country: form.country,
+        state: form.state,
+        city: form.city,
+        address: form.address,
+        postal_code: form.postal_code,
+        type
+      }});
+
+      await login(form.email, form.password);
+      onOpenChange(false);
+      navigate({ to: '/portal' });
+    } catch (err: any) {
+      setError(err?.message ?? "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-border bg-card">
+        <DialogHeader className="p-6 pb-0 border-b border-border/40 pb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="bg-primary/10 p-1.5 rounded-lg text-primary">
+              {type === 'business' ? <Building2 className="h-4 w-4" /> : <User className="h-4 w-4" />}
+            </div>
+            <p className="text-[11px] font-semibold tracking-[0.3em] text-primary/70">
+              {type === 'business' ? 'BUSINESS ACCOUNT' : 'INDIVIDUAL ACCOUNT'}
+            </p>
+          </div>
+          <DialogTitle className="text-2xl font-bold">Register Account</DialogTitle>
+          <DialogDescription>
+            Create your Devionic portal account to access your workspace.
+          </DialogDescription>
+          
+          <div className="flex items-center bg-muted/30 p-1 rounded-xl mt-4">
+            <button
+              type="button"
+              onClick={() => setType('business')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium rounded-lg transition-all ${
+                type === 'business' ? 'bg-background shadow-sm border text-foreground' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Building2 className="h-3.5 w-3.5" /> Business
+            </button>
+            <button
+              type="button"
+              onClick={() => setType('individual')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium rounded-lg transition-all ${
+                type === 'individual' ? 'bg-background shadow-sm border text-foreground' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <User className="h-3.5 w-3.5" /> Individual
+            </button>
+          </div>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[60vh] space-y-4">
+          {error && (
+            <div className="text-sm rounded-lg bg-destructive/10 text-destructive px-3 py-2.5 border border-destructive/20">
+              {error}
+            </div>
+          )}
+
+          {type === 'business' && (
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">Company Name</label>
+              <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                <Building2 className="h-4 w-4 text-muted-foreground shrink-0 group-focus-within:text-primary transition" />
+                <input required type="text" value={form.company} onChange={(e) => setForm(f => ({ ...f, company: e.target.value }))} placeholder="e.g. Acme Corp" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">
+              {type === 'business' ? 'Contact Person Name' : 'Full Name'}
+            </label>
+            <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+              <User className="h-4 w-4 text-muted-foreground shrink-0 group-focus-within:text-primary transition" />
+              <input required type="text" value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="John Doe" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">Email Address</label>
+              <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                <Mail className="h-4 w-4 text-muted-foreground shrink-0 group-focus-within:text-primary transition" />
+                <input required type="email" value={form.email} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} placeholder="you@example.com" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full" />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">Phone Number</label>
+              <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                <Phone className="h-4 w-4 text-muted-foreground shrink-0 group-focus-within:text-primary transition" />
+                <input required type="tel" value={form.phone} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+92 300 1234567" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full" />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">Street Address</label>
+            <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+              <MapPin className="h-4 w-4 text-muted-foreground shrink-0 group-focus-within:text-primary transition" />
+              <input required type="text" value={form.address} onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))} placeholder="123 Main Street" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">City</label>
+              <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                <input required type="text" value={form.city} onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))} placeholder="Lahore" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">State / Province</label>
+              <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                <input required type="text" value={form.state} onChange={(e) => setForm(f => ({ ...f, state: e.target.value }))} placeholder="Punjab" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full" />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">Country</label>
+              <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                <Globe className="h-4 w-4 text-muted-foreground shrink-0 group-focus-within:text-primary transition" />
+                <input required type="text" value={form.country} onChange={(e) => setForm(f => ({ ...f, country: e.target.value }))} placeholder="Pakistan" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">Postal Code</label>
+              <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                <input required type="text" value={form.postal_code} onChange={(e) => setForm(f => ({ ...f, postal_code: e.target.value }))} placeholder="54000" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full" />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">Password</label>
+              <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                <Lock className="h-4 w-4 text-muted-foreground shrink-0 group-focus-within:text-primary transition" />
+                <input required type="password" value={form.password} onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))} placeholder="••••••••" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">Confirm</label>
+              <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                <Lock className="h-4 w-4 text-muted-foreground shrink-0 group-focus-within:text-primary transition" />
+                <input required type="password" value={form.confirm} onChange={(e) => setForm(f => ({ ...f, confirm: e.target.value }))} placeholder="••••••••" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="pt-2">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl py-5 text-sm font-semibold tracking-wide text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-0.5 transition-all"
+              style={{ background: "linear-gradient(135deg, oklch(0.62 0.14 195), oklch(0.42 0.10 220))" }}
+            >
+              {loading ? "Registering…" : <><UserPlus className="h-4 w-4 mr-2" /> Complete Registration</>}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export const Route = createFileRoute("/portal/login")({
   head: () => ({
@@ -175,7 +419,7 @@ function PortalLoginPage() {
 
   return (
     <div
-      className="h-[100dvh] w-full relative overflow-hidden flex flex-col justify-center items-center p-4 sm:p-6"
+      className="min-h-screen relative overflow-hidden grid place-items-center p-4 sm:p-6"
       style={{ background: "oklch(0.97 0.008 220)" }}
     >
       {/* Ambient decorations */}
@@ -192,7 +436,7 @@ function PortalLoginPage() {
         style={{ background: "oklch(0.75 0.14 25 / 0.35)" }}
       />
 
-      <div className="relative w-full max-w-6xl rounded-[2rem] bg-card/95 backdrop-blur shadow-[0_30px_80px_-20px_oklch(0.3_0.05_240/0.35)] overflow-hidden grid lg:grid-cols-[1.05fr_1fr] h-[calc(100dvh-6rem)] lg:h-[85dvh] min-h-[500px] border border-white/60">
+      <div className="relative w-full max-w-6xl rounded-[2rem] bg-card/95 backdrop-blur shadow-[0_30px_80px_-20px_oklch(0.3_0.05_240/0.35)] overflow-hidden grid lg:grid-cols-[1.05fr_1fr] min-h-[500px] lg:min-h-[640px] border border-white/60">
         {/* Left brand panel - Hidden on mobile/tablet */}
         <div
           className="relative hidden lg:flex p-8 sm:p-12 text-white flex-col justify-between overflow-hidden"
@@ -284,8 +528,8 @@ function PortalLoginPage() {
         </div>
 
         {/* Right form panel */}
-        <div className="relative p-6 sm:p-10 lg:p-12 flex flex-col justify-center bg-card overflow-y-auto">
-          <div className="mx-auto w-full max-w-md my-auto py-4">
+        <div className="relative p-8 sm:p-12 lg:p-14 flex flex-col justify-center bg-card">
+          <div className="mx-auto w-full max-w-md">
 
           {/* ── Stage: credentials ── */}
           {stage === "credentials" && (
@@ -552,7 +796,7 @@ function PortalLoginPage() {
                 type="button" 
                 variant="outline" 
                 className="w-full rounded-xl text-xs bg-muted/30 border-dashed hover:bg-muted/50 hover:border-solid transition-all"
-                onClick={() => navigate({ to: "/portal/register", search: { type: "business" } })}
+                onClick={() => { setRegType("business"); setRegModalOpen(true); }}
               >
                 Register as Business
               </Button>
@@ -560,11 +804,13 @@ function PortalLoginPage() {
                 type="button" 
                 variant="outline" 
                 className="w-full rounded-xl text-xs bg-muted/30 border-dashed hover:bg-muted/50 hover:border-solid transition-all"
-                onClick={() => navigate({ to: "/portal/register", search: { type: "individual" } })}
+                onClick={() => { setRegType("individual"); setRegModalOpen(true); }}
               >
                 Register as Individual
               </Button>
             </div>
+            
+            <RegisterModal open={regModalOpen} onOpenChange={setRegModalOpen} initialType={regType} />
 
             <p className="text-center text-xs text-muted-foreground">
               Trouble signing in? Contact{" "}
@@ -577,13 +823,11 @@ function PortalLoginPage() {
         </div>
       </div>
 
-      <p className="absolute bottom-3 left-0 w-full mt-4 text-[10px] sm:text-xs text-muted-foreground text-center px-4 pointer-events-none">
+      <p className="relative mt-6 text-xs sm:text-sm text-muted-foreground text-center px-4">
         Devionic (Private) Limited · Head Office, Multan Road Chowk Azam, Tehsil &amp; District Layyah, Punjab, Pakistan — 31450<br className="hidden sm:block" />
-        <span className="pointer-events-auto">
-          +92-317-7121841 ·{" "}
-          <a href="https://www.devionic.com" target="_blank" rel="noreferrer" className="hover:text-foreground transition">www.devionic.com</a> ·{" "}
-          <a href="mailto:info@devionic.com" className="hover:text-foreground transition">info@devionic.com</a> · NTN H534200 · SECP CUIN 0308965
-        </span>
+        +92-317-7121841 ·{" "}
+        <a href="https://www.devionic.com" target="_blank" rel="noreferrer" className="hover:text-foreground transition">www.devionic.com</a> ·{" "}
+        <a href="mailto:info@devionic.com" className="hover:text-foreground transition">info@devionic.com</a> · NTN H534200 · SECP CUIN 0308965
       </p>
     </div>
   );

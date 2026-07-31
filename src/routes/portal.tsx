@@ -60,7 +60,7 @@ const GROUP_ORDER = ["Overview", "Work", "Billing", "Catalog", "Account"];
 
 function PortalLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isPublic = pathname === "/portal/login" || pathname === "/portal/register";
+  const isPublic = pathname === "/portal/login";
   if (isPublic) return <Outlet />;
   return (
     <RequirePortalAuth>
