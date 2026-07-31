@@ -40,9 +40,14 @@ function RegisterModal({
 }) {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const captcha = useMathCaptcha();
   const [type, setType] = useState<'business' | 'individual'>(initialType);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const [showPw, setShowPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [answer, setAnswer] = useState("");
   
   const [form, setForm] = useState({
     name: "",
@@ -62,6 +67,10 @@ function RegisterModal({
   useEffect(() => {
     setType(initialType);
     setError(null);
+    setAnswer("");
+    setShowPw(false);
+    setShowConfirmPw(false);
+    captcha.refresh();
     setForm({
       name: "", email: "", phone: "", password: "", confirm: "", 
       company: "", country: "", state: "", city: "", address: "", postal_code: ""
@@ -71,6 +80,13 @@ function RegisterModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (Number(answer) !== captcha.answer) {
+      setError("Captcha answer is incorrect. Please try again.");
+      captcha.refresh();
+      setAnswer("");
+      return;
+    }
     if (form.password !== form.confirm) {
       setError("Passwords do not match.");
       return;
@@ -234,15 +250,53 @@ function RegisterModal({
               <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">Password</label>
               <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
                 <Lock className="h-4 w-4 text-muted-foreground shrink-0 group-focus-within:text-primary transition" />
-                <input required type="password" value={form.password} onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))} placeholder="••••••••" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full" />
+                <input required type={showPw ? "text" : "password"} value={form.password} onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))} placeholder="••••••••" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full" />
+                <button type="button" onClick={() => setShowPw((v) => !v)} className="text-muted-foreground hover:text-foreground transition">
+                  {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
             <div className="space-y-1.5">
               <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">Confirm</label>
               <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
                 <Lock className="h-4 w-4 text-muted-foreground shrink-0 group-focus-within:text-primary transition" />
-                <input required type="password" value={form.confirm} onChange={(e) => setForm(f => ({ ...f, confirm: e.target.value }))} placeholder="••••••••" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full" />
+                <input required type={showConfirmPw ? "text" : "password"} value={form.confirm} onChange={(e) => setForm(f => ({ ...f, confirm: e.target.value }))} placeholder="••••••••" className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full" />
+                <button type="button" onClick={() => setShowConfirmPw((v) => !v)} className="text-muted-foreground hover:text-foreground transition">
+                  {showConfirmPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
+            </div>
+          </div>
+          
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">Security check</label>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 flex items-center gap-3 rounded-xl border border-input bg-muted/40 px-4 py-2.5 text-sm font-mono h-11">
+                <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+                <span className="tracking-wider">{captcha.question}</span>
+                <button
+                  type="button"
+                  onClick={() => { captcha.refresh(); setAnswer(""); }}
+                  className="ml-auto text-muted-foreground hover:text-foreground"
+                  title="New question"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </button>
+              </div>
+              <input
+                type="number"
+                required
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                placeholder="Answer"
+                className={`w-24 rounded-xl border border-input bg-background text-sm text-center outline-none focus:ring-2 h-11 ${
+                  answer
+                    ? Number(answer) === captcha.answer
+                      ? "border-green-500 text-green-600 focus:border-green-500 focus:ring-green-500/20"
+                      : "border-red-500 text-red-600 focus:border-red-500 focus:ring-red-500/20"
+                    : "focus:border-primary focus:ring-primary/20"
+                }`}
+              />
             </div>
           </div>
           
