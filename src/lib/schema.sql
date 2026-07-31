@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS clients_v2 (
   address TEXT,
   city VARCHAR(100),
   province VARCHAR(100),
+  country VARCHAR(100),
+  postal_code VARCHAR(50),
   ntn VARCHAR(100),
   strn VARCHAR(100),
   stage VARCHAR(50),

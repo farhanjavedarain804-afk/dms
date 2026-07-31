@@ -59,7 +59,7 @@ export const $createUser = createServerFn({ method: 'POST' })
   });
 
 export const $registerPortalClient = createServerFn({ method: 'POST' })
-  .validator((data: { email: string; password: string; name: string; phone: string; company?: string; type: 'business' | 'individual' }) => data)
+  .validator((data: { email: string; password: string; name: string; phone: string; company?: string; type: 'business' | 'individual'; country?: string; state?: string; city?: string; address?: string; postal_code?: string }) => data)
   .handler(async ({ data }) => {
     try {
       await ensureAuthTables();
@@ -72,6 +72,11 @@ export const $registerPortalClient = createServerFn({ method: 'POST' })
         company: data.company || null,
         email: data.email,
         phone: data.phone,
+        country: data.country || null,
+        province: data.state || null,
+        city: data.city || null,
+        address: data.address || null,
+        postal_code: data.postal_code || null,
         stage: 'Lead/New',
       });
       

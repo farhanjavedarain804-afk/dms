@@ -66,6 +66,13 @@ export async function ensureAuthTables(): Promise<void> {
       // Column likely already exists, ignore
     }
 
+    try {
+      await execute("ALTER TABLE clients_v2 ADD COLUMN country VARCHAR(100)");
+      await execute("ALTER TABLE clients_v2 ADD COLUMN postal_code VARCHAR(50)");
+    } catch (e: any) {
+      // Columns likely already exist, ignore
+    }
+
     await execute(`
       CREATE TABLE IF NOT EXISTS user_sessions (
         id         INT AUTO_INCREMENT PRIMARY KEY,

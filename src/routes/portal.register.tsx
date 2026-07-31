@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   Globe, Sparkles, FolderKanban, Receipt, LifeBuoy,
-  UserPlus, Mail, Lock, Phone, Building2, User
+  UserPlus, Mail, Lock, Phone, Building2, User, MapPin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { COMPANY } from "@/lib/company";
@@ -40,6 +40,11 @@ function PortalRegisterPage() {
     password: "",
     confirm: "",
     company: "",
+    country: "",
+    state: "",
+    city: "",
+    address: "",
+    postal_code: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -65,6 +70,11 @@ function PortalRegisterPage() {
         name: form.name,
         phone: form.phone,
         company: type === 'business' ? form.company : undefined,
+        country: form.country,
+        state: form.state,
+        city: form.city,
+        address: form.address,
+        postal_code: form.postal_code,
         type
       }});
 
@@ -304,6 +314,82 @@ function PortalRegisterPage() {
                       value={form.phone}
                       onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))}
                       placeholder="+92 300 1234567"
+                      className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">Street Address</label>
+                <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2.5 transition focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10">
+                  <MapPin className="h-4 w-4 text-muted-foreground shrink-0 group-focus-within:text-primary transition" />
+                  <input
+                    required
+                    type="text"
+                    value={form.address}
+                    onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))}
+                    placeholder="123 Main Street"
+                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">City</label>
+                  <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2.5 transition focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10">
+                    <input
+                      required
+                      type="text"
+                      value={form.city}
+                      onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))}
+                      placeholder="Lahore"
+                      className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">State / Province</label>
+                  <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2.5 transition focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10">
+                    <input
+                      required
+                      type="text"
+                      value={form.state}
+                      onChange={(e) => setForm(f => ({ ...f, state: e.target.value }))}
+                      placeholder="Punjab"
+                      className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">Country</label>
+                  <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2.5 transition focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10">
+                    <Globe className="h-4 w-4 text-muted-foreground shrink-0 group-focus-within:text-primary transition" />
+                    <input
+                      required
+                      type="text"
+                      value={form.country}
+                      onChange={(e) => setForm(f => ({ ...f, country: e.target.value }))}
+                      placeholder="Pakistan"
+                      className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium text-foreground/80 tracking-wide uppercase">Postal Code</label>
+                  <div className="group flex items-center gap-3 rounded-xl border border-input bg-background px-4 py-2.5 transition focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10">
+                    <input
+                      required
+                      type="text"
+                      value={form.postal_code}
+                      onChange={(e) => setForm(f => ({ ...f, postal_code: e.target.value }))}
+                      placeholder="54000"
                       className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full"
                     />
                   </div>
