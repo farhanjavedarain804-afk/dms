@@ -548,6 +548,13 @@ function PortalLoginPage() {
         </div>
         </div>
       </div>
+
+      <p className="relative mt-6 text-xs sm:text-sm text-muted-foreground text-center px-4">
+        Devionic (Private) Limited · Head Office, Multan Road Chowk Azam, Tehsil &amp; District Layyah, Punjab, Pakistan — 31450<br className="hidden sm:block" />
+        +92-317-7121841 ·{" "}
+        <a href="https://www.devionic.com" target="_blank" rel="noreferrer" className="hover:text-foreground transition">www.devionic.com</a> ·{" "}
+        <a href="mailto:info@devionic.com" className="hover:text-foreground transition">info@devionic.com</a> · NTN H534200 · SECP CUIN 0308965
+      </p>
     </div>
   );
 }
