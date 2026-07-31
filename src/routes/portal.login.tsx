@@ -38,9 +38,6 @@ function RegisterModal({
   onOpenChange: (open: boolean) => void;
   initialType?: 'business' | 'individual';
 }) {
-  const [regModalOpen, setRegModalOpen] = useState(false);
-  const [regType, setRegType] = useState<'business' | 'individual'>('business');
-
   const { login } = useAuth();
   const navigate = useNavigate();
   const [type, setType] = useState<'business' | 'individual'>(initialType);
@@ -287,6 +284,9 @@ function PortalLoginPage() {
   const { login, user } = useAuth();
   const navigate = useNavigate();
   const captcha = useMathCaptcha();
+
+  const [regModalOpen, setRegModalOpen] = useState(false);
+  const [regType, setRegType] = useState<'business' | 'individual'>('business');
 
   const [stage, setStage] = useState<Stage>("credentials");
   const [email, setEmail] = useState("");
