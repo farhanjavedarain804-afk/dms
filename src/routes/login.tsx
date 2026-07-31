@@ -243,7 +243,7 @@ function LoginPage() {
         style={{ background: "oklch(0.75 0.14 25 / 0.35)" }}
       />
 
-      <div className="relative w-full max-w-6xl rounded-[2rem] bg-card/95 backdrop-blur shadow-[0_30px_80px_-20px_oklch(0.3_0.05_240/0.35)] overflow-hidden grid lg:grid-cols-[1.05fr_1fr] min-h-[640px] border border-white/60">
+      <div className="relative w-full max-w-6xl rounded-[2rem] bg-card/95 backdrop-blur shadow-[0_30px_80px_-20px_oklch(0.3_0.05_240/0.35)] overflow-hidden grid lg:grid-cols-[1.05fr_1fr] min-h-[580px] lg:min-h-[600px] border border-white/60">
         {/* Left brand panel */}
         <div
           className="relative p-8 sm:p-12 text-white flex flex-col justify-between overflow-hidden"
@@ -296,7 +296,7 @@ function LoginPage() {
               <Sparkles className="h-3.5 w-3.5" />
               DIGITAL MANAGEMENT SYSTEM
             </span>
-            <h2 className="mt-6 sm:mt-8 text-xl xs:text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold leading-[1.2] tracking-tight">
+            <h2 className="mt-6 sm:mt-8 text-xl xs:text-2xl sm:text-3xl lg:text-4xl xl:text-[3rem] font-bold leading-[1.2] tracking-tight">
               <span className="block whitespace-nowrap">Run & Manage entire</span>
               <span className="block whitespace-nowrap">company from one</span>
               <span
@@ -309,19 +309,20 @@ function LoginPage() {
                 dashboard.
               </span>
             </h2>
-            <p className="mt-4 text-[13px] sm:text-sm text-white/85 leading-relaxed pr-4">
-              Devionic connects people, projects, and performance through intelligent automation —<br className="hidden sm:block" /> making work faster, smarter, and simpler
+            <p className="mt-4 text-xs sm:text-sm text-white/85 leading-relaxed">
+              <span className="block">Devionic connects people, projects, and performance through intelligent automation —</span>
+              <span className="block">making work faster, smarter, and simpler</span>
             </p>
 
-            <ul className="mt-6 space-y-3">
+            <ul className="mt-8 space-y-4">
               {FEATURES.map(({ icon: Icon, title, desc }) => (
-                <li key={title} className="flex items-start gap-2.5">
-                  <span className="mt-0.5 grid place-items-center h-8 w-8 rounded-xl bg-white/10 border border-white/20 backdrop-blur shrink-0">
-                    <Icon className="h-4 w-4" />
+                <li key={title} className="flex items-start gap-3">
+                  <span className="mt-0.5 grid place-items-center h-9 w-9 rounded-xl bg-white/10 border border-white/20 backdrop-blur">
+                    <Icon className="h-4.5 w-4.5" />
                   </span>
                   <div>
-                    <p className="text-[13px] font-semibold">{title}</p>
-                    <p className="text-[11px] text-white/70">{desc}</p>
+                    <p className="text-sm font-semibold">{title}</p>
+                    <p className="text-xs text-white/70">{desc}</p>
                   </div>
                 </li>
               ))}
