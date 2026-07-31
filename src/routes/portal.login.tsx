@@ -537,8 +537,36 @@ function PortalLoginPage() {
             </div>
           )}
 
-          <div className="mt-8 text-center">
-            <p className="text-xs text-muted-foreground">
+          <div className="mt-8 space-y-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-[10px] tracking-widest uppercase">
+                <span className="bg-card px-2 text-muted-foreground">New to Devionic?</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full rounded-xl text-xs bg-muted/30 border-dashed hover:bg-muted/50 hover:border-solid transition-all"
+                onClick={() => alert("Business registration coming soon!")}
+              >
+                Register as Business
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full rounded-xl text-xs bg-muted/30 border-dashed hover:bg-muted/50 hover:border-solid transition-all"
+                onClick={() => alert("Individual registration coming soon!")}
+              >
+                Register as Individual
+              </Button>
+            </div>
+
+            <p className="text-center text-xs text-muted-foreground">
               Trouble signing in? Contact{" "}
               <a href={`mailto:${COMPANY.email}`} className="font-medium text-primary hover:underline">
                 {COMPANY.email}
